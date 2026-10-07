@@ -1,0 +1,28 @@
+{
+  "groups": [
+    { "key": "company", "name": "机构与厂商", "blurb": "按监管机构、漏洞平台、媒体与安全厂商追踪" },
+    { "key": "field", "name": "情报方向", "blurb": "按网络安全、勒索、漏洞和数据泄露等方向深挖" },
+    { "key": "genre", "name": "内容形态", "blurb": "按监管通报、漏洞库、媒体与厂商研究浏览" }
+  ],
+  "topics": [
+    { "slug": "cncert", "name": "CNCERT", "group": "company", "entityId": "cncert", "definition": "国家互联网应急中心发布的网络安全监测、预警、处置与行业通报。" },
+    { "slug": "cnvd", "name": "CNVD", "group": "company", "entityId": "cnvd", "definition": "国家信息安全漏洞共享平台的漏洞收录、通报、风险研判与处置动态。" },
+    { "slug": "cisa", "name": "CISA", "group": "company", "entityId": "cisa", "definition": "美国网络安全和基础设施安全局的漏洞、已知利用目录与威胁通报。" },
+    { "slug": "nvd", "name": "NVD", "group": "company", "entityId": "nvd", "definition": "NVD 漏洞数据库的 CVE、评分、影响产品和修复信息。" },
+    { "slug": "yongxin-zhicheng", "name": "永信至诚", "group": "company", "entityId": "yongxin-zhicheng", "definition": "永信至诚的网络安全产品、攻防演练、研究与企业安全服务动态。" },
+    { "slug": "security-vendors", "name": "安全厂商研究", "group": "company", "tags": ["厂商研究"], "definition": "Microsoft、Cisco、Palo Alto Networks、Sophos、Mandiant 等厂商发布的安全研究与公告。" },
+    { "slug": "network-security", "name": "网络安全", "group": "field", "tags": ["网络安全"], "definition": "网络安全全域动态：监管通报、漏洞风险、威胁情报、安全媒体和厂商研究。" },
+    { "slug": "ransomware-intelligence", "name": "勒索情报", "group": "field", "tags": ["勒索情报"], "definition": "勒索软件家族、攻击活动、受害组织、公开报告与可核验的勒索情报；外部泄露站点追踪仍处于公开源验证阶段。" },
+    { "slug": "dark-web-intelligence", "name": "暗网情报", "group": "field", "tags": ["暗网情报"], "definition": "暗网情报主题占位页。本期只保留信息架构，不接入实际暗网数据源。" },
+    { "slug": "vulnerability-db", "name": "漏洞库与 CVE", "group": "field", "tags": ["漏洞披露", "CVE", "NVD", "CNVD"], "definition": "CVE、NVD、CNVD 与厂商漏洞公告，关注编号、影响范围、利用状态与修复建议。" },
+    { "slug": "data-breach", "name": "数据泄露", "group": "field", "tags": ["数据泄露"], "definition": "数据泄露事件、暴露数据、影响范围、通报与后续处置。" },
+    { "slug": "supply-chain", "name": "供应链安全", "group": "field", "tags": ["供应链"], "definition": "软件供应链、依赖投毒、镜像与开源组件风险的发现、验证和处置。" },
+    { "slug": "cloud-security", "name": "云安全", "group": "field", "tags": ["云安全"], "definition": "云平台、容器、身份权限和云上攻击面的安全风险与防护实践。" },
+    { "slug": "regulatory-notices", "name": "监管通报", "group": "genre", "tags": ["监管通报", "监管合规"], "definition": "CNCERT、CNVD、工信部、网信办以及海外监管机构的公开通报和政策动态。" },
+    { "slug": "security-media", "name": "安全媒体", "group": "genre", "tags": ["安全媒体"], "definition": "FreeBuf、安全牛、嘶吼、看雪等中文安全媒体的公开内容。" },
+    { "slug": "overseas-security-media", "name": "海外媒体", "group": "genre", "tags": ["海外媒体"], "definition": "海外网络安全媒体与研究站点的公开报道，覆盖漏洞、勒索和重大安全事件。" },
+    { "slug": "vendor-research", "name": "厂商研究博客", "group": "genre", "tags": ["厂商研究"], "definition": "安全厂商、研究团队和实验室发布的威胁报告、漏洞研究与检测建议。" },
+    { "slug": "public-sources", "name": "公开源验证", "group": "genre", "tags": ["公开源", "待验证"], "definition": "正在验证可用性与授权边界的公开来源，包括勒索情报公开项目；不代表已经接入生产采集。" },
+    { "slug": "security-practice", "name": "安全实战", "group": "genre", "tags": ["实战/工具"], "definition": "检测规则、应急响应、工具使用、攻防演练和可迁移的安全工程方法。" }
+  ]
+}
