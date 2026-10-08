@@ -1,8 +1,50 @@
-【网络安全领域术语规则】
 
-1. 漏洞编号、产品名、攻击组织、恶意软件家族、协议和命令保持原文：CVE、CVSS、NVD、CNVD、APT、IOC、TTP、RCE、SQLi、XSS、CISA、CNCERT 等不擅自翻译或改写。
-2. 首次出现的英文安全术语可用“中文（英文）”解释一次，后续保持同一写法；品牌名、厂商名、项目名和域名不翻译成近似名称。
-3. 勒索情报必须区分：攻击已确认、组织自称、媒体转述、公开泄露站点声称。没有独立证据时不要写成已证实事件。
-4. 暗网相关内容本期只允许作为“暗网情报”主题的占位说明，不因文章提到论坛、泄露站点或匿名渠道就补写来源、样本或受害者信息。
-5. 监管机构名称按官方中文名书写：国家互联网应急中心（CNCERT）、国家信息安全漏洞共享平台（CNVD）、工业和信息化部、国家互联网信息办公室；海外机构保留 CISA、NVD 等简称。
-6. 数字、时间、CVE 编号、CVSS 分数、受影响版本、补丁版本、样本哈希、网址和路径必须以原文为准，不从常识补全。
+【跨主题信息翻译规则 — 保持原事实、主体和语境】
+
+1. AI 术语按上下文翻译：以下词在中文有歧义，AI 文章中按 AI 含义翻译，普通新闻或安全材料中不要强行套用 AI 解释：
+   - LLM = 大语言模型（绝不译"法学硕士"/"Master of Laws"）
+   - Token / tokens = 模型 token（保留英文；绝不译"代币"/"令牌"）
+   - Transformer = Transformer 架构（保留英文；不译"变压器"）
+   - Diffusion = 扩散模型（AI 生成，不是物理扩散）
+   - Agent / Agentic = AI 智能体 / 智能体的（不译"代理人"/"中介"）
+   - Alignment = 对齐（AI 安全语境）
+   - Inference = 推理（模型生成）
+   - Reasoning = 推理（注意：与 inference 都译"推理"，必要时用"链式推理"区分 CoT；reasoning model 指 o1/o3/R1 这类思考型模型）
+   - Embedding = 嵌入向量（也可保留英文）
+   - Distillation = 知识蒸馏
+   - Hallucination = 模型幻觉
+   - Fine-tune / Fine-tuning = 微调
+   - Pretrain / Pretraining = 预训练
+   - Context window = 上下文窗口
+   - Prompt = 提示词
+   - Skill / Skills = 技能（Claude 等 Agent 框架的能力包，不译"特长"）
+
+2. AI 和技术专有名词**优先保留英文原文**，不擅自改写版本号、产品名或协议名：
+   - AI 公司：OpenAI / Anthropic / Google DeepMind / xAI / Meta AI / Mistral / DeepSeek / Cohere / HuggingFace（HF）/ Runway / ElevenLabs / Suno / Pika / Midjourney / Perplexity
+   - 模型族（举例 + 通用规则）：GPT / Claude / Gemini / Llama / Qwen / Grok / o 系列 / DeepSeek / Mistral / Mixtral / Phi / Sora / Veo / Imagen
+     **规则**：任何大模型族名、产品代号一律保留英文
+   - 模型版本号（举例 + 通用规则）：GPT-5 / Claude 4.7 / Claude Sonnet 4.6 / Llama 4 / Gemini 3 / o3 / o4 / DeepSeek-V4 / Qwen3.7
+     **规则**：版本号一字不改（包括字母数字后缀如 4o / 4.7 / 405B / V4 / R1），绝不"翻译性扩写"（不要把 "405B" 译成 "4050 亿"，不要把 "V4" 译成 "第 4 代"）
+   - 技术缩写（举例 + 通用规则）：LLM / RAG / RLHF / DPO / LoRA / QLoRA / PEFT / MoE / CoT / ReAct / KV cache / SOTA / AGI / MCP / ADK / NPU / GPU / TPU
+     **规则**：任何 2-5 字母的全大写缩写，默认按 AI/ML 含义保留英文
+   - 评测基准（举例 + 通用规则）：MMLU / GPQA / HumanEval / SWE-bench / SWE-bench Verified / AIME / HLE / ARC-AGI / ARC-AGI 2 / MT-Bench / Chatbot Arena / Aider Polyglot / LiveCodeBench
+     **规则**：以 -bench / -eval 结尾或全大写的评测名一律保留英文
+   - AI 工具/产品：Cursor / Copilot / Codex / Aider / Devin / Cline / Claude Code / Windsurf / Zed / v0 / Bolt / Lovable / Replit Agent
+   - Agent 框架：LangChain / LangGraph / LlamaIndex / CrewAI / AutoGen / Pydantic AI / Vercel AI SDK / DSPy
+   - 推理/部署：Ollama / vLLM / SGLang / TensorRT / Triton / CUDA / ROCm
+   - 通用技术：API / SDK / CLI / IDE / SaaS / CDN / SSO / OAuth / JWT / WebSocket / SSE / gRPC
+
+3. 中国厂商和机构**优先用官方中文品牌名**（首次出现可双标，后续保持一致）：
+   - 千问（Qwen）/ 文心一言 / 智谱（GLM）/ 月之暗面（Kimi）/ 深度求索（DeepSeek）/ 阶跃星辰（Step）/ 零一万物（Yi）/ 百川 / 豆包（字节）/ 混元（腾讯）/ 可灵（Kling，快手）/ 即梦（Jimeng，字节）/ MiniMax（不译）/ 美团 LongCat / 昆仑万维 Skywork / 面壁 MiniCPM / 华为昇腾 / 寒武纪
+
+4. 安全与公共信息：
+   - 网络安全材料要保留 CVE、CVSS、NVD、CNVD、APT、IOC、TTP、RCE、SQLi、XSS、CISA、CNCERT 等原文缩写。
+   - 勒索、暗网和泄露站点内容必须区分官方确认、厂商称、研究人员推测、媒体转述和公开来源自称；没有独立证据时写成待核验线索。
+   - 政策、时政和公共事件必须区分官方发布、媒体报道、当事方说法和评论，不把预测写成已发生事实。
+
+5. 代码 / 命令 / URL / 数字单位 **一字不改**保留：
+   - 反引号代码 `code` 不翻译
+   - 命令如 /code-review、pip install、npm run 不译（不要译"代码审查"）
+   - URL 原样
+   - 数字+单位：8k context / 175B params / 3.5x speedup / $3 per M tokens / 99.9%
+   - 金额、参数量、比例、区间必须保留原文的阿拉伯数字和单位；不要把 $10B-$100B 改写成“数百亿至数千亿美元”等中文数量词

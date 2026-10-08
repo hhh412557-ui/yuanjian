@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { subjectAfter, withSubject } from "@aihot/site";
 import { webModules } from "../../site-modules";
 import {
-  IconAlert, IconBolt, IconBookmark, IconDoc, IconEye, IconFlame, IconGrid, IconHeart, IconHistory, IconList, IconMessage, IconPlug, IconShield, IconUser,
+  IconAlert, IconBolt, IconBookmark, IconDoc, IconEye, IconFlame, IconGrid, IconHeart, IconHistory, IconList, IconMessage, IconPlug, IconShield, IconSparkles, IconUser,
 } from "../icons";
 
 export interface NavItem {
@@ -30,11 +30,17 @@ const SECTIONS: Array<{ title: string; items: NavItem[] }> = [
     ],
   },
   {
-    title: "情报板块",
+    title: "特色频道",
     items: [
       { to: "/topics/network-security", label: "网络安全", icon: IconShield },
       { to: "/topics/ransomware-intelligence", label: "勒索情报", icon: IconAlert },
       { to: "/topics/dark-web-intelligence", label: "暗网情报", icon: IconEye },
+    ],
+  },
+  {
+    title: "扩展",
+    items: [
+      { to: "/skills", label: "自研 Skill", icon: IconSparkles },
     ],
   },
   {

@@ -20,14 +20,14 @@ export const SITE = {
   /** 站名：导航、页面标题、分享图、RSS、MCP、后台都用它。 */
   name: "永信至诚智能服务中心",
   /**
-   * 行业词：拼进默认说法里，比如“AI 日报”“AI 动态”。
-   * 改成“法律”“HR”“黄金”之类，页面上就会变成“法律日报”“法律动态”。
+   * 主力内容词：页面通用入口用“信息”，避免把产品误导成 AI-only 或安全-only；
+   * AI 仍然是主内容之一，并在标题、信源和主题里完整保留。
    */
-  subject: "网络安全",
+  subject: "信息",
   /** 首页的完整标题（浏览器标签、搜索结果）。 */
-  homeTitle: "永信至诚智能服务中心 — 网络安全情报 · 每日精选与日报",
+  homeTitle: "永信至诚智能服务中心 — AI、时政与全球资讯 · 每日精选",
   /** 主题目录页（/topics）的标题。 */
-  topicsTitle: "网络安全主题：监管、漏洞、威胁情报与安全媒体动态",
+  topicsTitle: "信息主题：AI、时政、综合新闻与特色安全动态",
   /** 反馈表单输入框里的示例。 */
   feedbackExample: "例如：我在搜索某个关键词时遇到……我原本想……",
   /** 反馈页标题下面的一句话。 */
@@ -35,13 +35,13 @@ export const SITE = {
   /** 反馈表单邮箱框里的提示。 */
   feedbackEmailHint: "留下邮箱，我们可以回信联系你",
   /** 一句话介绍：搜索引擎、分享卡片、RSS、llms.txt 会用。 */
-  description: `聚合监管通报、漏洞库、安全媒体与厂商研究，把同一安全事件的多篇报道归到一起，${EDITION_WHEN.daily} 输出网络安全情报日报。`,
+  description: `从 AI、时政、综合新闻和网络安全等公开信源中筛出有用内容，把同一事件的多篇报道归到一起，${EDITION_WHEN.daily} 输出一份读得完的信息精选日报。`,
   /** llms.txt 里一句话介绍下面的一段详细介绍（选填）。 */
   llmsIntro: null as string | null,
   /** 一行小字：分享图、海报下方。 */
-  tagline: "看见风险，连接防御",
+  tagline: "从信息洪流中找到值得读的内容",
   /** 搜索引擎读到的关键词（首页结构化数据）。 */
-  keywords: ["网络安全情报", "漏洞情报", "勒索情报", "监管通报", "永信至诚"] as string[],
+  keywords: ["AI 资讯", "AI 新闻", "AI 日报", "新闻检索", "时政新闻", "新闻日报", "网络安全", "永信至诚"] as string[],
   /** 网站开始收录的年份（结构化数据的时间范围，选填）。 */
   since: null as string | null,
   /** 界面语言（HTML lang、og:locale）。 */
@@ -63,7 +63,7 @@ export const SITE = {
   /** 对外联系邮箱（选填）：llms.txt 和给 Agent 的使用说明里会写。 */
   contactEmail: null as string | null,
   /** 关于页底部的一行小字（选填）。 */
-  footerNote: "永信至诚智能服务中心 · 安全情报工作台",
+  footerNote: "永信至诚智能服务中心 · 智能信息检索工作台",
   /** 中国大陆网站的 ICP 备案号（选填），填了就显示在侧栏底部和“我的”页底部，并链接到工信部备案系统。 */
   icp: null as string | null,
   /** 源码的 GitHub 仓库地址（选填），填了就在侧栏底部和“我的”页底部显示“GitHub 开源”。 */
@@ -75,7 +75,7 @@ export const SITE = {
     founder: null as null | { name: string; alternateName?: string; jobTitle?: string; description?: string; url?: string },
   },
   /** 抓取信源时报上的名字和版本（User-Agent 里用），不要冒用别的站。 */
-  crawlerName: "YXZC-SecurityBot/1.0",
+  crawlerName: "YXZC-InfoBot/1.0",
 } as const;
 
 /** 使用规则和隐私说明两页（正文在 pages/ 里）。 */
@@ -134,15 +134,15 @@ export const ABOUT = {
   /** 页面描述（搜索结果、分享卡片）。 */
   description: `关于 ${SITE.name}：${SITE.description}`,
   /** 大标题：第一行正常颜色，第二行强调色。 */
-  headline: ["安全情报每天都在变化，", "值得关注的风险只有几类。"] as [string, string],
+  headline: ["信息每天都在爆炸，", "值得读的只有几条。"] as [string, string],
   /** 标题下面的一段话。{sources} 会换成实时的信源数（两边自动加空格，所以 {sources} 两边不写空格）；统计没取到时换成 sourcesFallback。 */
   lead: `${SITE.name} 替你盯着{sources}个信源：抓取、归并、打分、精选，${EDITION_WHEN.daily} 出一份日报。免费，不用注册。`,
   sourcesFallback: "十几",
   /** 信源河动画下面的四个环节。 */
   steps: {
-    collect: "监管机构、漏洞库、安全媒体与厂商研究源都在看；更新越勤的源看得越勤，最快 15 分钟看一次。",
+    collect: "官方机构、研究团队、媒体和公司博客都在看；更新越勤的源看得越勤，最快 15 分钟看一次。",
     store: "抓到的都存下来，同一件事的报道归到一起，热点榜就是从这里算出来的。",
-    select: `系统先判断是否属于网络安全事件、漏洞或威胁情报，再写中文标题、摘要和${ITEM_COPY.reasonLabel}；营销稿和重复转发进不来。`,
+    select: `系统先判断有没有实际信息、是否值得读，再写中文标题、摘要和${ITEM_COPY.reasonLabel}；营销稿和重复转发进不来。`,
     publish: `${EDITION_WHEN.daily} 出日报，${EDITION_WHEN.weekly} 出周报，${EDITION_WHEN.monthly} 出月报。`,
   },
   /**
@@ -176,7 +176,7 @@ export const ADMIN = {
 /** Agent 接入页的示例。 */
 export const AGENT = {
   /** MCP 工具表里“搜索”一行：能搜什么、可以怎么问。 */
-  search: { scope: "按漏洞编号、攻击组织、厂商、监管机构或话题搜最近 7 天", ask: "最近有哪些高风险漏洞通报？" },
+  search: { scope: "按公司、人物、产品、政策或话题搜最近 7 天", ask: "最近哪些 AI、时政或行业新闻值得关注？" },
 };
 
 /** 日报、周报、月报版面上的说法。 */
@@ -184,12 +184,12 @@ export const REPORTS = {
   /** 报头下面的出版者一行。 */
   imprint: SITE.name.toUpperCase(),
   /** 报头旁边的一个词。 */
-  motto: "安全情报",
+  motto: "信息精选",
   /** 每种报告页面的描述（搜索结果、分享卡片），不带句号；llms.txt 介绍周报、月报时也用它。 */
   descriptions: {
-    daily: `${SITE.name} ${subjectAfter(`${EDITION_WHEN.daily}（北京时间）发布的`, "行业精编日报")}`,
-    weekly: subjectAfter("每周", "行业综合回顾"),
-    monthly: subjectAfter("每月", "行业盘点"),
+    daily: `${SITE.name} ${EDITION_WHEN.daily}（北京时间）发布的 AI 与新闻精编日报`,
+    weekly: "每周信息综合回顾",
+    monthly: "每月信息盘点",
   },
   /**
    * 一期里的一条怎么称呼（“4 件大事”）：没有头条时的标题（“这一天的 4 件 AI 大事”）、报头和往期目录的条数、
@@ -201,7 +201,7 @@ export const REPORTS = {
   /** 报告分享图上“共几条”的说法。 */
   shareUnit: "件大事",
   /** 日报时段内有资料经过评判、但没有新大事时的标题与导语。 */
-  quiet: { title: "今日安静，无大事发生", paragraph: `${subjectAfter("北京时间 {start} 至 {end}，没有新的", "大事")}。` },
+  quiet: { title: "今日安静，没有新的信息焦点", paragraph: "北京时间 {start} 至 {end}，没有新的信息焦点。" },
 };
 
 /** 运维告警（只发给站长）里随部署而变的几处说法。 */
@@ -233,10 +233,10 @@ export const COMMUNITY_FEEDS: { dev: string[]; hn: string[] } = {
 
 /** 各页分享图（/og/pages/*.png）上的文字。主题目录页的那张按主题数自动生成。 */
 export const CARDS: Record<string, { kicker: string; title: string; subtitle: string; accent?: "hot" | "amber" }> = {
-  site: { kicker: subjectAfter("每日", "精选"), title: SITE.tagline, subtitle: SITE.description },
-  all: { kicker: subjectAfter("全部", "动态"), title: "所有信源的最新动态，一站看完", subtitle: "按时间汇总各信源的最新动态，可按类别与标签筛选。" },
+  site: { kicker: "每日信息精选", title: SITE.tagline, subtitle: SITE.description },
+  all: { kicker: "全部动态", title: "所有信源的最新动态，一站看完", subtitle: "按时间汇总各信源的最新动态，可按类别与标签筛选。" },
   hot: { kicker: "热点榜", title: "过去 48 小时，大家在讨论什么", subtitle: "热度指数、趋势与组成热度的公开来源。", accent: "hot" },
-  daily: { kicker: withSubject("日报"), title: subjectAfter(`每天 ${spokenTime(EDITION_TIMES.daily)}，一份读得完的`, "日报"), subtitle: `${subjectAfter("前一天值得关注的", "动态")}。` },
+  daily: { kicker: "AI 与新闻日报", title: `每天 ${spokenTime(EDITION_TIMES.daily)}，一份读得完的信息精选`, subtitle: "前一天值得关注的 AI、时政、综合新闻与特色安全动态。" },
   weekly: { kicker: withSubject("周报"), title: `一周${REPORTS.entry.noun}，一次看清`, subtitle: "本周的主线、重要发布与值得回看的讨论。" },
   monthly: { kicker: withSubject("月报"), title: "一个月的变化", subtitle: "月度主线与关键事件回顾。" },
   about: { kicker: "关于", title: `关于 ${SITE.name}`, subtitle: SITE.description },
