@@ -4,11 +4,11 @@
 import { tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { after, before, mock, test } from "node:test";
-import { closeDb, sql } from "@aihot/backend/db";
-import { upsertMaterial } from "@aihot/backend/content/materials";
-import { getBoss, stopBoss } from "@aihot/backend/jobs/queue";
-import { publishArticle } from "@aihot/backend/publication/publish";
-import { selectedContent } from "@aihot/backend/notify/selected-content";
+import { closeDb, sql } from "@yuanjian/backend/db";
+import { upsertMaterial } from "@yuanjian/backend/content/materials";
+import { getBoss, stopBoss } from "@yuanjian/backend/jobs/queue";
+import { publishArticle } from "@yuanjian/backend/publication/publish";
+import { selectedContent } from "@yuanjian/backend/notify/selected-content";
 import { buildApp } from "../apps/api/src/app.ts";
 
 const T = tag();

@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { IntentLink } from "../components/ui/IntentLink";
 import { useLoaderData, useNavigate, useSearchParams } from "react-router";
 import type { Route } from "./+types/agent";
-import { PUBLIC_INTERFACE_VERSION } from "@aihot/contracts/http-policy";
-import { SITE } from "@aihot/site";
+import { PUBLIC_INTERFACE_VERSION } from "@yuanjian/contracts/http-policy";
+import { SITE } from "@yuanjian/site";
 import { apiGet, cachedPage } from "../lib/api.server";
 import { pageReuse } from "../lib/page-reuse";
 import { listPath, pageMeta, siteUrl } from "../lib/seo";
@@ -80,7 +80,7 @@ export function meta({ location }: Route.MetaArgs) {
   const path = listPath("/agent", { tab: tab !== FIRST ? tab : null });
   return pageMeta({
     title: "Agent 接入",
-    description: `把 ${SITE.name} 接进你的 Agent：${TRACKS.map((t) => t.name).join("、")} ${WAYS}种方式，匿名只读，无需 API Key，一分钟接好。`,
+    description: `把 ${SITE.name} 接进你的 Agent：${TRACKS.map((t) => t.name).join("、")} ${WAYS}种方式，MCP 需要专属 token，RSS 与 API 保持公开只读。`,
     path,
     image: "/og/pages/agent.png",
   });
@@ -176,14 +176,14 @@ export default function AgentPage() {
       <header className="lg:pt-5">
         <Kicker>AGENT 接入</Kicker>
         <h1 data-page-title="" className="mt-4 text-[28px] font-semibold leading-[1.3] text-ink sm:text-[32px]">{`把 ${SITE.name} 接进你的 Agent`}</h1>
-        <p className="mt-3 max-w-[40em] text-[15px] leading-[1.8] text-ink-3">{`${TRACKS.map((t) => t.short).join("、")} ${WAYS}种方式读的是同一份数据：精选、热点、日报、周报和月报，按你用的工具选一种就行。全部匿名只读，不用注册，也不用 API Key。`}</p>
+        <p className="mt-3 max-w-[40em] text-[15px] leading-[1.8] text-ink-3">{`${TRACKS.map((t) => t.short).join("、")} ${WAYS}种方式读的是同一份数据：精选、热点、日报、周报和月报，按你用的工具选一种就行。MCP 需要专属 token，RSS 与 REST API 仍可公开只读。`}</p>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className={`${chip} ${healthy ? "text-ok" : "text-hot"}`}>
             <span className={`size-1.5 rounded-full ${healthy ? "bg-ok" : "bg-hot"}`} aria-hidden="true" />
             {healthy ? "服务正常" : "服务异常"}
           </span>
           <span className={chip}>版本 <span className="mono text-ink-2">{V}</span></span>
-          <span className={chip}>匿名只读 · 无需 Key</span>
+          <span className={chip}>MCP 专属 token · RSS/API 公开只读</span>
         </div>
       </header>
 

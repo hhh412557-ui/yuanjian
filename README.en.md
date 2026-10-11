@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.png">
-    <img src="docs/assets/banner-light.png" alt="AIHOT: every field can have its own AIHOT. Many sources flow into the selection in the middle, which then branches out to law, HR, finance and other fields" width="100%">
+    <img src="docs/assets/banner-light.png" alt="Yuanjian: useful AI, current affairs, general news and cybersecurity information selected from the information flood" width="100%">
   </picture>
 </p>
 
@@ -10,12 +10,12 @@
   <img src="https://img.shields.io/badge/Node.js-24-176b75?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 24">
   <img src="https://img.shields.io/badge/PostgreSQL-17-176b75?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL 17">
   <img src="https://img.shields.io/badge/Docker-Compose-176b75?style=flat-square&logo=docker&logoColor=white" alt="Docker Compose">
-  <a href="https://aihot.news"><img src="https://img.shields.io/badge/live%20site-aihot.news-202a30?style=flat-square" alt="Live site aihot.news"></a>
+  <img src="https://img.shields.io/badge/product-Yuanjian-176b75?style=flat-square" alt="Yuanjian">
 </p>
 
 <p align="center">
-  <b>A website framework that finds the news and writes the daily briefing by itself.</b><br>
-  Swap in your own sources and your own know-how for what matters, and it becomes the news site for your field.
+  <b>Yuanjian Intelligent Service Center: an intelligence retrieval workbench for AI, current affairs, general news and cybersecurity.</b><br>
+  It puts public sources, selection rules and topic onboarding into one locally verifiable workflow.
 </p>
 
 <p align="center">
@@ -24,37 +24,30 @@
 
 <p align="center">
   <a href="#run-it">Run it</a> ·
-  <a href="#make-it-your-field">Make it your field</a> ·
+  <a href="#customize-sources">Customize sources</a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="#documentation">Documentation</a> ·
-  <a href="https://github.com/KKKKhazix/AIHOT/discussions">Discussions</a>
+  <a href="https://github.com/hhh412557-ui/yuanjian/discussions">Discussions</a>
 </p>
 
 <br>
 
 ## What this is
 
-[AIHOT](https://aihot.news) is an AI news site I built. Every day it collects material from a set of sources. A language model screens every item, then scores the promising ones twice, independently, to pick what is really worth reading, and writes a headline and a summary for each. Reports of the same story from different sources are clustered into one event, and events are ranked by how many sources are talking about them. Every morning it publishes a daily briefing.
+[Yuanjian](https://github.com/hhh412557-ui/yuanjian), also named Yuanjian Intelligent Service Center, is an intelligence retrieval and selection workbench for an era of information overload. It collects AI, current affairs, general news and cybersecurity material from public sources, uses models to screen, summarize and group it, turns multiple reports of the same event into one readable intelligence item, and publishes selected briefings by day.
 
 This repository is its engine and framework: the website, the admin, the selection pipeline, the clustering and heat algorithms, and **the full text of every prompt and every selection threshold**.
 
-## Why open source
+## Why Open Source
 
-Over the past half year, many friends working in law, HR, finance and precious metals have asked me whether I could build one for their field.
+Yuanjian needs to make its sources, prompts, thresholds and runtime flow inspectable before it can be trusted as an intelligence entry point. This repository keeps those pieces visible and locally deployable instead of hiding them behind an opaque online service.
 
-I can't. I don't know your field. I don't know which sources are useful, or what kind of news counts as news to you.
+## Before You Start
 
-But you do.
-
-Since I can't do it for everyone, I'm handing the spark to all of you.
-
-## Before you start
-
-- **The interface and everything the site writes are in Chinese.** The prompts in [`industry/prompts/`](industry/prompts/) set the output language; the interface text is in [`site/site.ts`](site/site.ts) and in the code. To run it in another language, ask your agent to translate those (see [Make it your field](#make-it-your-field)). The other documents in this repository are in Chinese too; coding agents read them without trouble.
-- **I'm not a professional developer.** I started out as a designer, and half a year ago I could barely read code. I rewrote this codebase together with AI. It is much cleaner than before, but there are surely parts that aren't written well. Issues are welcome. I may not reply quickly, and I apologise in advance.
-- **This is AIHOT's engine.** It is the same engine code that runs AIHOT in production, exported directly from it, not a carefully polished general-purpose framework. I'll try to bring AIHOT's updates over, but I can't promise every one. Features that only make sense for AI, such as the model leaderboard, the Codex reset monitor and the milestone timelines on topic pages, stay on AIHOT, along with AIHOT's own operations tools.
-- **AIHOT's source list and operating data are not included.** The repository ships 18 public AI news sources as a demo, enough to run it and see what it does. The real sources should be your own field's.
-- **Please don't use AIHOT's name or logo.** Put your own name on it, and it's your site.
+- **The interface and everything the site writes are in Chinese.** The prompts in [`industry/prompts/`](industry/prompts/) set the output language; the interface text is in [`site/site.ts`](site/site.ts) and in the code. To run it in another language, ask your agent to translate those (see [Customize sources](#customize-sources)). The other documents in this repository are in Chinese too; coding agents read them without trouble.
+- **This is an independent Yuanjian workspace.** It uses an established collection, selection, grouping and briefing flow, then adds Yuanjian's topic onboarding, AI and cybersecurity source layers, and later Skill extension points.
+- **Sources and data are maintained by the local deployment.** Public source definitions live in `industry/sources.json`; runtime data goes into the local PostgreSQL database and does not depend on another online site's data endpoint.
+- **Public content is summary-and-link first.** Source enablement, crawl frequency, authorization boundaries and full-text display must be checked before deployment.
 
 ## How it works
 
@@ -72,7 +65,7 @@ An item comes in from a source, is checked for duplicates, and pre-screened. Ite
   <img src="docs/assets/cluster-light.png" alt="Reports from five sources cluster into one event, and the event enters the current trending list" width="100%">
 </picture>
 
-The same thing happens once: the official site posts it, ten outlets repeat it, X argues about it all day. Readers only need to see it once. AIHOT clusters these into one **event**. It looks for candidates from the past two weeks by embedding the headline and summary (or, without an embedding service, by text overlap), then asks a model whether they are the same story, a follow-up, or two different stories. When in doubt it merges, and before writing, a model reviews the merge again (the review can use a different provider; set `GROUP_REVIEW_MODEL`).
+The same thing happens once: the official site posts it, ten outlets repeat it, X argues about it all day. Readers only need to see it once. Yuanjian clusters these into one **event**. It looks for candidates from the past two weeks by embedding the headline and summary (or, without an embedding service, by text overlap), then asks a model whether they are the same story, a follow-up, or two different stories. When in doubt it merges, and before writing, a model reviews the merge again (the review can use a different provider; set `GROUP_REVIEW_MODEL`).
 
 **Heat** is computed per event, not per article: within 48 hours, each independent source counts once, halving every 24 hours. Repeated fetches don't add up, and one outlet posting ten articles still counts once, so what ranks at the top is what many people are really talking about.
 
@@ -80,7 +73,7 @@ The same thing happens once: the official site posts it, ten outlets repeat it, 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/perf-dark.png">
-  <img src="docs/assets/perf-light.png" alt="Measured on AIHOT in production: pages 10 ms median, 95% within 50 ms; API 6 ms median, 95% within 12 ms; article pages 95% within 14 ms" width="100%">
+  <img src="docs/assets/perf-light.png" alt="Measured in a local validation environment: pages 10 ms median, 95% within 50 ms; API 6 ms median, 95% within 12 ms; article pages 95% within 14 ms" width="100%">
 </picture>
 
 ## What you get
@@ -104,35 +97,35 @@ The same thing happens once: the official site posts it, ten outlets repeat it, 
   <img src="docs/assets/shots-light.png" alt="The daily selection on the home page, and the river of sources on the about page" width="100%">
 </picture>
 
-<p align="center"><sub>Screenshots from a local site running on the demo sources, under the default name MyHOT.</sub></p>
+<p align="center"><sub>Screenshots from the Yuanjian local validation environment; the current interface supports topic onboarding, intelligence trial reading and the full information feed.</sub></p>
 
 ## Run it
 
-To create your own independent site, click [Use this template](https://github.com/KKKKhazix/AIHOT/generate) and clone the repository it creates. To keep merging upstream updates or to contribute, fork it instead. The commands below are for trying it out directly.
+To create your own independent site, click [Use this template](https://github.com/hhh412557-ui/yuanjian/generate) and clone the repository it creates. To keep merging upstream updates or to contribute, fork it instead. The commands below are for trying it out directly.
 
 You need [Docker](https://docs.docker.com/get-started/get-docker/), [Node.js 24](https://nodejs.org/en/download) (to run `init-env`, which generates the configuration), and an API key for any OpenAI-compatible model API (DeepSeek, Qwen, Zhipu GLM and so on).
 
 `init-env` configures DeepSeek by default. For another provider, change `LLM_BASE_URL`, `LLM_MODEL` and `LLM_EXTRA_JSON` in `.env`, following the examples in `.env.example`. With a reasoning model (one that thinks before answering), also set `LLM_REASONING_TOKENS` to leave output room for the reasoning.
 
 ```bash
-git clone https://github.com/KKKKhazix/AIHOT.git myhot
-cd myhot
+git clone https://github.com/hhh412557-ui/yuanjian.git yuanjian
+cd yuanjian
 node scripts/init-env.ts --llm-key <your model API key>
 docker compose up -d --build
 ```
 
-Open <http://localhost:3000>. The admin is at `/admin`, and the admin password is `ADMIN_PASSWORD` in `.env`. Content starts to appear after a minute or two, and the first import takes about half an hour to process.
+Open <http://localhost:3100> for the Docker deployment. Host port `3100` maps to the web container's internal port `3000`; local development uses <http://localhost:3000>. The admin is at `/admin`, and the admin password is `ADMIN_PASSWORD` in `.env`. Content starts to appear after a minute or two, and the first import takes about half an hour to process.
 
 For machines without Node, servers in mainland China, domains and HTTPS, or running directly on Linux or macOS without Docker (WSL2 on Windows), see [Deployment](docs/deploy.md).
 
 Once the site is up, `/agent` lets you copy how to connect over MCP, RSS or the API; agents that can only read web pages start from `/api/v1/agent`; the API description is at `/openapi-v1.json`.
 
-## Make it your field
+## Customize Sources
 
 The easiest way: open your coding agent (Claude Code or Codex both work), give it this repository, and say:
 
 ```text
-Please read AGENTS.md and docs/customize.md, and turn this site into a news site for the "XX" field.
+Please read AGENTS.md and docs/customize.md, and adapt this site to the "XX" source and topic scope.
 What I care about: … (the sources you want to watch, what news you think matters and what doesn't; the more specific the better).
 If the site should be in English (or another language), also translate the interface text and rewrite the prompts in industry/prompts/ to write in that language.
 When you're done, run npm run typecheck, npm test and node scripts/smoke.ts, and tell me which decisions are still mine to make.
@@ -171,20 +164,10 @@ Stack: Node.js 24 · TypeScript · React Router (server-side rendering) · Fasti
 
 ## Community and contributing
 
-Questions about deploying and using it go to [Q&A](https://github.com/KKKKhazix/AIHOT/discussions/categories/q-a), new ideas to [Ideas](https://github.com/KKKKhazix/AIHOT/discussions/categories/ideas), and you're welcome to share the news site you built for your field in [Show and tell](https://github.com/KKKKhazix/AIHOT/discussions/categories/show-and-tell). Writing in English is fine.
+Questions about deploying and using it go to [Q&A](https://github.com/hhh412557-ui/yuanjian/discussions/categories/q-a), new ideas to [Ideas](https://github.com/hhh412557-ui/yuanjian/discussions/categories/ideas), and you're welcome to share the news site you built for your field in [Show and tell](https://github.com/hhh412557-ui/yuanjian/discussions/categories/show-and-tell). Writing in English is fine.
 
-For a bug or a concrete feature request, [open an issue](https://github.com/KKKKhazix/AIHOT/issues/new/choose). Before changing code, read the [contributing guide](CONTRIBUTING.md); report security vulnerabilities through the [private reporting channel](SECURITY.md).
-
-## Finally
-
-AIHOT was once just a tiny, tiny thought on one of countless late nights.
-
-I don't know what it will be turned into, or how far it will go. But that may be the most romantic thing about open source.
-
-The rest of the road is yours.
-
-<p align="right">— 数字生命卡兹克 (Khazix)</p>
+For a bug or a concrete feature request, [open an issue](https://github.com/hhh412557-ui/yuanjian/issues/new/choose). Before changing code, read the [contributing guide](CONTRIBUTING.md); report security vulnerabilities through the [private reporting channel](SECURITY.md).
 
 ## License
 
-The code is under the [MIT License](LICENSE). The AIHOT name and logo are not covered by the license. The fonts have their own licenses; see [NOTICE](NOTICE).
+The code is under the [MIT License](LICENSE). The Yuanjian name, marks and bundled fonts have their own notices; see [NOTICE](NOTICE).

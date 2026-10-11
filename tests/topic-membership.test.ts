@@ -5,8 +5,8 @@
 import { tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
-import { closeDb, sql } from "@aihot/backend/db";
-import { findTopic, loadTopicPage, topicMembership } from "@aihot/backend/publication/topics";
+import { closeDb, sql } from "@yuanjian/backend/db";
+import { findTopic, loadTopicPage, topicMembership } from "@yuanjian/backend/publication/topics";
 
 after(closeDb);
 

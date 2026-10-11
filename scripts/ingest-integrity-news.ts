@@ -1,5 +1,5 @@
 // Pull the first-party Yongxin Zhicheng news list from the host network and hand it to
-// AIHOT's existing ingest pipeline. The Docker collector cannot currently reach this site,
+// Yuanjian's existing ingest pipeline. The Docker collector cannot currently reach this site,
 // so the host-side fetch keeps the source boundary explicit without adding a new backend path.
 import { load } from "cheerio";
 

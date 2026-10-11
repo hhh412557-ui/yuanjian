@@ -6,12 +6,12 @@ import { pointModels, Reply, stub, tag } from "./setup.ts";
 import { analysisStep, type AnalysisStep } from "./analysis-steps.ts";
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { closeDb, sql } from "@aihot/backend/db";
-import { upsertMaterial } from "@aihot/backend/content/materials";
-import { analyzeArticle, buildMaterial, loadAnalyzeInput, normalizeStructure, StructureSchema, tierThreshold, UNDERSTAND_FLOOR } from "@aihot/backend/editorial/analyze";
-import { queueProcessing } from "@aihot/backend/jobs/content";
-import { QUEUES, stopBoss } from "@aihot/backend/jobs/queue";
-import { compactAnswerFirstSummary, enforceIdentity, MAX_BODY_CHARS, parseTranslateOutput } from "@aihot/backend/editorial/writing";
+import { closeDb, sql } from "@yuanjian/backend/db";
+import { upsertMaterial } from "@yuanjian/backend/content/materials";
+import { analyzeArticle, buildMaterial, loadAnalyzeInput, normalizeStructure, StructureSchema, tierThreshold, UNDERSTAND_FLOOR } from "@yuanjian/backend/editorial/analyze";
+import { queueProcessing } from "@yuanjian/backend/jobs/content";
+import { QUEUES, stopBoss } from "@yuanjian/backend/jobs/queue";
+import { compactAnswerFirstSummary, enforceIdentity, MAX_BODY_CHARS, parseTranslateOutput } from "@yuanjian/backend/editorial/writing";
 
 const T = tag();
 const SOURCE = `test-analyze-${T}`;

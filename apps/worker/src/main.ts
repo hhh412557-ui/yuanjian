@@ -1,21 +1,24 @@
 // Worker process: queues and schedules for collection, processing, events, reports and ops, and the site's
 // modules (site/modules/server.ts).
-import { assertProductionSecrets } from "@aihot/backend/config";
-import { closeDb } from "@aihot/backend/db";
-import { getBoss, stopBoss, workModuleQueues } from "@aihot/backend/jobs/queue";
-import { installModules } from "@aihot/backend/modules";
-import { SERVER_MODULES } from "@aihot/site/modules/server";
-import { registerContentJobs } from "@aihot/backend/jobs/content";
-import { registerSourceJobs } from "@aihot/backend/jobs/sources";
-import { registerEventJobs } from "@aihot/backend/jobs/events";
-import { registerNotifyJobs } from "@aihot/backend/jobs/notify";
-import { registerPublicationJobs } from "@aihot/backend/jobs/publication";
+import { assertProductionSecrets } from "@yuanjian/backend/config";
+import { closeDb } from "@yuanjian/backend/db";
+import { getBoss, stopBoss, workModuleQueues } from "@yuanjian/backend/jobs/queue";
+import { installModules } from "@yuanjian/backend/modules";
+import { SERVER_MODULES } from "@yuanjian/site/modules/server";
+import { registerContentJobs } from "@yuanjian/backend/jobs/content";
+import { registerSourceJobs } from "@yuanjian/backend/jobs/sources";
+import { registerEventJobs } from "@yuanjian/backend/jobs/events";
+import { registerNotifyJobs } from "@yuanjian/backend/jobs/notify";
+import { registerPublicationJobs } from "@yuanjian/backend/jobs/publication";
 import { registerSchedules } from "./schedules.ts";
-import { ensureContentTargets } from "@aihot/backend/notify/deliver";
-import { startHeartbeat } from "@aihot/backend/operations/heartbeat";
+import { ensureContentTargets } from "@yuanjian/backend/notify/deliver";
+import { startHeartbeat } from "@yuanjian/backend/operations/heartbeat";
 
 installModules(SERVER_MODULES);
 assertProductionSecrets([["auth", "IMG_PROXY_SIGN_SECRET"]]);
+assertProductionSecrets([
+  ["auth", "POSTGRES_PASSWORD"], ["auth", "SESSION_SECRET"], ["auth", "ADMIN_PASSWORD"],
+]);
 
 await ensureContentTargets();
 const boss = await getBoss();

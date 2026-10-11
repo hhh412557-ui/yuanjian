@@ -4,12 +4,12 @@ import { tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
-import { MCP_TOOL_NAMES } from "@aihot/contracts/mcp";
-import { closeDb, sql } from "@aihot/backend/db";
-import { upsertMaterial } from "@aihot/backend/content/materials";
-import { setSeoIndexed } from "@aihot/backend/admin/content";
-import { publishArticle } from "@aihot/backend/publication/publish";
-import { stopBoss } from "@aihot/backend/jobs/queue";
+import { MCP_TOOL_NAMES } from "@yuanjian/contracts/mcp";
+import { closeDb, sql } from "@yuanjian/backend/db";
+import { upsertMaterial } from "@yuanjian/backend/content/materials";
+import { setSeoIndexed } from "@yuanjian/backend/admin/content";
+import { publishArticle } from "@yuanjian/backend/publication/publish";
+import { stopBoss } from "@yuanjian/backend/jobs/queue";
 import { buildApp } from "../apps/api/src/app.ts";
 
 const key = tag();
@@ -53,7 +53,7 @@ test("every search matches the source name readers see and excludes its internal
   const id = await fixture(`${visible}（${internal}）`);
   const address = await app.listen({ host: "127.0.0.1", port: 0 });
   const client = new Client({ name: "outlet-search", version: "1.0.0" });
-  await client.connect(new StreamableHTTPClientTransport(new URL(`${address}/api/mcp`)));
+  await client.connect(new StreamableHTTPClientTransport(new URL(`${address}/api/mcp`), { requestInit: { headers: { authorization: "Bearer yxzc_test_token" } } }));
   try {
     for (const [query, expected] of [[visible, true], [internal, false]] as const) {
       for (const prefix of ["/api/site/pool?q=", "/api/v1/items?mode=all&q=", "/api/v1/agent/search?q="]) {

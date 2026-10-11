@@ -18,14 +18,14 @@ export const EDITION_WHEN = {
 
 export const SITE = {
   /** 站名：导航、页面标题、分享图、RSS、MCP、后台都用它。 */
-  name: "永信至诚智能服务中心",
+  name: "元见",
   /**
    * 主力内容词：页面通用入口用“信息”，避免把产品误导成 AI-only 或安全-only；
    * AI 仍然是主内容之一，并在标题、信源和主题里完整保留。
    */
   subject: "信息",
   /** 首页的完整标题（浏览器标签、搜索结果）。 */
-  homeTitle: "永信至诚智能服务中心 — AI、时政与全球资讯 · 每日精选",
+  homeTitle: "元见 — AI、时政与全球资讯 · 每日精选",
   /** 主题目录页（/topics）的标题。 */
   topicsTitle: "信息主题：AI、时政、综合新闻与特色安全动态",
   /** 反馈表单输入框里的示例。 */
@@ -41,7 +41,7 @@ export const SITE = {
   /** 一行小字：分享图、海报下方。 */
   tagline: "从信息洪流中找到值得读的内容",
   /** 搜索引擎读到的关键词（首页结构化数据）。 */
-  keywords: ["AI 资讯", "AI 新闻", "AI 日报", "新闻检索", "时政新闻", "新闻日报", "网络安全", "永信至诚"] as string[],
+  keywords: ["元见", "AI 资讯", "AI 新闻", "AI 日报", "新闻检索", "时政新闻", "新闻日报", "网络安全"] as string[],
   /** 网站开始收录的年份（结构化数据的时间范围，选填）。 */
   since: null as string | null,
   /** 界面语言（HTML lang、og:locale）。 */
@@ -63,14 +63,14 @@ export const SITE = {
   /** 对外联系邮箱（选填）：llms.txt 和给 Agent 的使用说明里会写。 */
   contactEmail: null as string | null,
   /** 关于页底部的一行小字（选填）。 */
-  footerNote: "永信至诚智能服务中心 · 智能信息检索工作台",
+  footerNote: "元见 · 智能信息检索工作台",
   /** 中国大陆网站的 ICP 备案号（选填），填了就显示在侧栏底部和“我的”页底部，并链接到工信部备案系统。 */
   icp: null as string | null,
   /** 源码的 GitHub 仓库地址（选填），填了就在侧栏底部和“我的”页底部显示“GitHub 开源”。 */
   github: null as string | null,
   /** 结构化数据里的网站运营者（搜索引擎用）。 */
   organization: {
-    name: "永信至诚智能服务中心",
+    name: "元见",
     /** 创始人（选填）。 */
     founder: null as null | { name: string; alternateName?: string; jobTitle?: string; description?: string; url?: string },
   },
@@ -244,7 +244,7 @@ export const CARDS: Record<string, { kicker: string; title: string; subtitle: st
   privacy: { kicker: "隐私说明", title: `${SITE.name} 隐私说明`, subtitle: "访问日志、浏览器本地数据与反馈资料的处理方式。" },
   changelog: { kicker: "更新日志", title: `${SITE.name} 更新日志`, subtitle: "功能更新、优化、公告与下线记录。" },
   feedback: { kicker: "反馈", title: "告诉我们哪里可以更好", subtitle: "内容、功能、接入，或来源方的更正与下架请求。" },
-  agent: { kicker: "Agent 接入", title: `把 ${SITE.name} 接进你的 Agent`, subtitle: "MCP、RSS、API 三种方式，匿名只读，无需 API Key。" },
+  agent: { kicker: "Agent 接入", title: `把 ${SITE.name} 接进你的 Agent`, subtitle: "MCP 需要专属 token；RSS、API 仍提供公开只读访问。" },
 };
 
 /** 公开接口的访问约定里随部署而变的几处：给 Agent 的使用说明、llms.txt 会写。 */
@@ -257,7 +257,7 @@ export const ACCESS = {
 
 /** 这个部署自己的几处安排（选填）。 */
 export const DEPLOYMENT = {
-  /** 凭据分组文件（models.env、collectors.env……）默认放在哪个目录，相对仓库根目录；环境变量 AIHOT_CREDENTIALS_DIR 优先，都没有就只读环境变量。 */
+  /** 凭据分组文件（models.env、collectors.env……）默认放在哪个目录，相对仓库根目录；环境变量 YUANJIAN_CREDENTIALS_DIR 优先，都没有就只读环境变量。 */
   credentialsDir: null as string | null,
   /** 凭据分组的文件名（放在凭据目录下，选填）：没写的分组用“分组名.env”，比如 models.env。 */
   credentialFiles: {} as Partial<Record<string, string>>,

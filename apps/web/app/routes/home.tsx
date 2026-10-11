@@ -1,6 +1,6 @@
 import { redirect, useLoaderData } from "react-router";
 import type { Route } from "./+types/home";
-import type { TimelineResponse } from "@aihot/contracts/site";
+import type { TimelineResponse } from "@yuanjian/contracts/site";
 import { cachedPage, loadOr404 } from "../lib/api.server";
 import { pageReuse } from "../lib/page-reuse";
 import { filterParams, itemListLd, listPath, pageMeta, readFilters, siteLd } from "../lib/seo";
@@ -8,6 +8,8 @@ import type { Screen } from "../components/shell/screens";
 import { Timeline } from "../features/feed/Timeline";
 import { HotTopics } from "../features/feed/HotTopics";
 import { ActiveFilters, CategoryTabs, FeedBar, SearchField } from "../features/feed/Filters";
+import { QuestionnaireGate } from "../features/trial/QuestionnaireGate";
+import { useOnboardingState } from "../lib/local-state";
 
 export const handle: Screen = { tab: "featured", name: "精选" };
 export { pageHeaders as headers } from "../lib/api.server";
@@ -20,18 +22,27 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (q && q.trim()) throw redirect(`/all${url.search}`);
   const filters = readFilters(url.searchParams);
   const upstream = new Headers();
-  const data = await loadOr404<TimelineResponse>(listPath("/api/site/timeline", filterParams(filters)), { responseHeaders: upstream, signal: request.signal });
-  return cachedPage(60, { data, filters }, upstream);
+  try {
+    const data = await loadOr404<TimelineResponse>(listPath("/api/site/timeline", filterParams(filters)), { responseHeaders: upstream, signal: request.signal });
+    return cachedPage(60, { data, filters }, upstream);
+  } catch (error) {
+    if (request.signal.aborted) throw error;
+    if (error instanceof Response && error.status >= 300 && error.status < 400) throw error;
+    return { data: null, filters, offline: true as const };
+  }
 }
 
 export function meta({ loaderData }: Route.MetaArgs) {
   const path = listPath("/", loaderData ? filterParams(loaderData.filters) : {});
-  const titles = loaderData?.data.cards.map((c) => c.item.title) ?? [];
+  const titles = loaderData?.data?.cards.map((c) => c.item.title) ?? [];
   return pageMeta({ path, jsonLd: path === "/" ? [...siteLd(), itemListLd("/", "精选", titles)] : undefined });
 }
 
 export default function Home() {
   const { data, filters } = useLoaderData<typeof loader>();
+  const onboarding = useOnboardingState();
+  if (!onboarding.completed) return <QuestionnaireGate />;
+  if (!data) return <div className="flex min-h-[70vh] items-center justify-center px-4 py-16 text-center"><div><h1 className="text-[20px] font-semibold text-ink">信息流暂时不可用</h1><p className="mt-2 text-[13.5px] leading-relaxed text-ink-3">主题初始化已经完成，稍后重新加载即可继续阅读。</p></div></div>;
   const title = filters.tag ? `#${filters.tag}` : "精选";
   return (
     <div className="pb-6">

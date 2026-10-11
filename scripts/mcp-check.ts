@@ -5,10 +5,10 @@
 // node scripts/mcp-check.ts [url] [--full]
 import { Client } from "@modelcontextprotocol/client";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
-import { PUBLIC_INTERFACE_VERSION } from "@aihot/contracts/http-policy";
-import { MCP_TOOL_NAMES as T, MCP_TOOLS, mcpToolName } from "@aihot/contracts/mcp";
-import { SITE } from "@aihot/site";
-import { SERVER_MODULES } from "@aihot/site/modules/server";
+import { PUBLIC_INTERFACE_VERSION } from "@yuanjian/contracts/http-policy";
+import { MCP_ONBOARDING_TOOL_NAMES as O, MCP_TOOL_NAMES as T, MCP_TOOLS, mcpToolName } from "@yuanjian/contracts/mcp";
+import { SITE } from "@yuanjian/site";
+import { SERVER_MODULES } from "@yuanjian/site/modules/server";
 
 const args = process.argv.slice(2);
 const full = args.includes("--full");
@@ -19,6 +19,7 @@ const moduleTools = SERVER_MODULES.flatMap((m) => m.agent?.abilities ?? []).map(
   args: a.mcp.checkArgs,
   input: a.mcp.input,
 }));
+const transportOptions = process.env.MCP_TOKEN ? { requestInit: { headers: { authorization: `Bearer ${process.env.MCP_TOKEN}` } } } : undefined;
 const client = new Client({ name: `${SITE.mcpPrefix}-mcp-check`, version: "1.0.0" });
 
 function firstText(result: Awaited<ReturnType<Client["callTool"]>>): string {
@@ -49,7 +50,7 @@ async function call(
   return result;
 }
 
-await client.connect(new StreamableHTTPClientTransport(url));
+await client.connect(new StreamableHTTPClientTransport(url, transportOptions));
 try {
   const info = client.getServerVersion?.();
   console.log("server:", JSON.stringify(info));
@@ -62,40 +63,51 @@ try {
 
   const listed = await client.listTools();
   const actualNames = listed.tools.map((tool) => tool.name).sort();
-  const expectedNames = [...MCP_TOOLS.map((tool) => tool.name), ...moduleTools.map((tool) => tool.name)].sort();
-  console.log("tools:", actualNames.join(", "));
-  if (JSON.stringify(actualNames) !== JSON.stringify(expectedNames)) {
-    throw new Error(`tool list mismatch: expected [${expectedNames.join(", ")}], got [${actualNames.join(", ")}]`);
+  if (!process.env.MCP_TOKEN) {
+    const onboardingNames = [O.start, O.confirm].sort();
+    console.log("tools:", actualNames.join(", "));
+    if (JSON.stringify(actualNames) !== JSON.stringify(onboardingNames)) {
+      throw new Error(`onboarding tool list mismatch: expected [${onboardingNames.join(", ")}], got [${actualNames.join(", ")}]`);
+    }
+    const result = await client.callTool({ name: O.start, arguments: {} });
+    if (result.isError === true || !result.structuredContent) throw new Error("topic onboarding tool returned no structured result");
+    console.log("MCP onboarding contract check passed");
+  } else {
+    const expectedNames = [...MCP_TOOLS.map((tool) => tool.name), ...moduleTools.map((tool) => tool.name)].sort();
+    console.log("tools:", actualNames.join(", "));
+    if (JSON.stringify(actualNames) !== JSON.stringify(expectedNames)) {
+      throw new Error(`tool list mismatch: expected [${expectedNames.join(", ")}], got [${actualNames.join(", ")}]`);
+    }
+
+    // These reads are valid on a fresh site: an empty result set is still a successful public answer.
+    await call(T.latest, { limit: 2 });
+    await call(T.search, { q: "OpenAI", limit: 2 });
+    await call(T.hot, { limit: 3 });
+    for (const tool of moduleTools) {
+      if (tool.args !== undefined) await call(tool.name, tool.args);
+      else if ((await tool.input.safeParseAsync({})).success) await call(tool.name, {});
+      else console.log(`${tool.name} → discovery only (no checkArgs and input rejects {})`);
+    }
+
+    // Exercise the remaining tools without depending on seeded reports/stories.
+    await call(T.daily, { date: "2026-02-30" }, { error: true, code: "invalid_request" });
+    await call(T.weekly, { week: "2026-W54" }, { error: true, code: "invalid_request" });
+    await call(T.monthly, { month: "2026-13" }, { error: true, code: "invalid_request" });
+    await call(T.story, { public_id: "__mcp_check_missing__", report_limit: 3 }, { error: true, code: "not_found" });
+
+    // SDK/server schema validation must reject values outside the advertised input contract.
+    await call(T.latest, { limit: 99 }, { error: true });
+
+    if (full) {
+      for (const name of [T.daily, T.weekly, T.monthly]) await call(name, {});
+      const hot = await call(T.hot, { limit: 1 });
+      const storyId = ((hot.structuredContent as { items?: Array<{ links?: { story?: string } }> }).items?.[0]?.links?.story ?? "").split("/").pop();
+      if (!storyId) throw new Error("--full needs a populated public story");
+      await call(T.story, { public_id: storyId, report_limit: 3 });
+    }
+
+    console.log("MCP contract check passed");
   }
-
-  // These reads are valid on a fresh site: an empty result set is still a successful public answer.
-  await call(T.latest, { limit: 2 });
-  await call(T.search, { q: "OpenAI", limit: 2 });
-  await call(T.hot, { limit: 3 });
-  for (const tool of moduleTools) {
-    if (tool.args !== undefined) await call(tool.name, tool.args);
-    else if ((await tool.input.safeParseAsync({})).success) await call(tool.name, {});
-    else console.log(`${tool.name} → discovery only (no checkArgs and input rejects {})`);
-  }
-
-  // Exercise the remaining tools without depending on seeded reports/stories.
-  await call(T.daily, { date: "2026-02-30" }, { error: true, code: "invalid_request" });
-  await call(T.weekly, { week: "2026-W54" }, { error: true, code: "invalid_request" });
-  await call(T.monthly, { month: "2026-13" }, { error: true, code: "invalid_request" });
-  await call(T.story, { public_id: "__mcp_check_missing__", report_limit: 3 }, { error: true, code: "not_found" });
-
-  // SDK/server schema validation must reject values outside the advertised input contract.
-  await call(T.latest, { limit: 99 }, { error: true });
-
-  if (full) {
-    for (const name of [T.daily, T.weekly, T.monthly]) await call(name, {});
-    const hot = await call(T.hot, { limit: 1 });
-    const storyId = ((hot.structuredContent as { items?: Array<{ links?: { story?: string } }> }).items?.[0]?.links?.story ?? "").split("/").pop();
-    if (!storyId) throw new Error("--full needs a populated public story");
-    await call(T.story, { public_id: storyId, report_limit: 3 });
-  }
-
-  console.log("MCP contract check passed");
 } finally {
   await client.close();
 }

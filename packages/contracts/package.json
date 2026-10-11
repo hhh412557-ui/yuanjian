@@ -1,12 +1,12 @@
 {
-  "name": "@aihot/contracts",
+  "name": "@yuanjian/contracts",
   "private": true,
   "type": "module",
   "exports": {
     "./*": "./src/*.ts"
   },
   "dependencies": {
-    "@aihot/industry": "*",
-    "@aihot/site": "*"
+    "@yuanjian/industry": "*",
+    "@yuanjian/site": "*"
   }
 }

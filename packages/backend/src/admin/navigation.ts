@@ -1,4 +1,4 @@
-import type { AdminNavCounts } from "@aihot/contracts/admin";
+import type { AdminNavCounts } from "@yuanjian/contracts/admin";
 import { sql } from "../db.ts";
 import { serverModules } from "../modules.ts";
 

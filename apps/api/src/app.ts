@@ -1,10 +1,10 @@
 import Fastify, { LogController, type FastifyInstance, type FastifyReply, type FastifyRequest } from "fastify";
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage } from "node:http";
-import { OAUTH_PROBE_PATHS, resolveRedirect } from "@aihot/contracts/http-policy";
-import { sql } from "@aihot/backend/db";
-import { logError } from "@aihot/backend/lib/log-error";
-import { serverModules } from "@aihot/backend/modules";
+import { OAUTH_PROBE_PATHS, resolveRedirect } from "@yuanjian/contracts/http-policy";
+import { sql } from "@yuanjian/backend/db";
+import { logError } from "@yuanjian/backend/lib/log-error";
+import { serverModules } from "@yuanjian/backend/modules";
 import { registerSite } from "./routes/site.ts";
 import { registerOg } from "./routes/og.ts";
 import { registerAdminAuth } from "./routes/admin-auth.ts";
@@ -16,6 +16,7 @@ import { registerMedia } from "./routes/media.ts";
 import { registerFeeds } from "./routes/feeds.ts";
 import { registerStatic } from "./routes/static.ts";
 import { registerMcp } from "./routes/mcp.ts";
+import { registerMcpProfile } from "./routes/mcp-profile.ts";
 import { sendProblem } from "./http/respond.ts";
 
 /** Quiet ordinary access logs, while keeping errors that happen after the route has returned. */
@@ -86,7 +87,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.get("/api/health", async (_req, reply) => {
     const started = Date.now();
     await sql`SELECT 1`;
-    return reply.header("Cache-Control", "no-store").send({ ok: true, db: "ok", ms: Date.now() - started, release: process.env.AIHOT_RELEASE ?? "dev" });
+    return reply.header("Cache-Control", "no-store").send({ ok: true, db: "ok", ms: Date.now() - started, release: process.env.YUANJIAN_RELEASE ?? "dev" });
   });
 
   registerSite(app);
@@ -100,6 +101,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   registerFeeds(app);
   registerStatic(app);
   registerMcp(app);
+  registerMcpProfile(app);
   for (const m of serverModules()) m.http?.(app);
   registerV1Fallbacks(app);
 

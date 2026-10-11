@@ -5,11 +5,11 @@ import { tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, before, test } from "node:test";
-import { closeDb, sql } from "@aihot/backend/db";
-import { upsertMaterial } from "@aihot/backend/content/materials";
-import { stopBoss } from "@aihot/backend/jobs/queue";
-import { publishArticle } from "@aihot/backend/publication/publish";
-import { textToHtml } from "@aihot/backend/content/sanitize";
+import { closeDb, sql } from "@yuanjian/backend/db";
+import { upsertMaterial } from "@yuanjian/backend/content/materials";
+import { stopBoss } from "@yuanjian/backend/jobs/queue";
+import { publishArticle } from "@yuanjian/backend/publication/publish";
+import { textToHtml } from "@yuanjian/backend/content/sanitize";
 import { buildApp } from "../apps/api/src/app.ts";
 
 const T = tag();

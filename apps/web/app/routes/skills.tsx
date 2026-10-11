@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { SITE } from "@aihot/site";
+import { SITE } from "@yuanjian/site";
 import { pageMeta } from "../lib/seo";
 import { AsideCard, ReadingLayout } from "../components/ui/Page";
 import { Kicker } from "../components/ui/Kicker";
@@ -81,7 +81,7 @@ export default function SkillsPage() {
             <IconSparkles size={27} className="text-accent" />
             自研 Skill
           </h1>
-          <p className="mt-3 max-w-[44em] text-[15px] leading-[1.85] text-ink-3">这里预留永信至诚后续自研的信息检索与工作流能力。产品主线仍然是从信息洪流中筛出有用内容，Skill 会在这条主线上提供更具体的整理、追踪和分析动作。</p>
+          <p className="mt-3 max-w-[44em] text-[15px] leading-[1.85] text-ink-3">这里预留后续自研的信息检索与工作流能力。元见的产品主线仍然是从信息洪流中筛出有用内容，Skill 会在这条主线上提供更具体的整理、追踪和分析动作。</p>
         </header>
 
         <section className="card mt-7 p-5 sm:p-6" aria-labelledby="planned-skills">

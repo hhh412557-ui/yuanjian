@@ -1,8 +1,8 @@
 // Names, dates and grouping for daily, weekly and monthly reports.
-import type { ReportNavigationEntry, ReportKind } from "@aihot/contracts/site";
-import { beijingDate, beijingWeekday, isoWeekLabel, isoWeekRange } from "@aihot/contracts/time";
-import { EDITION_WHEN, REPORTS, SITE, subjectAfter } from "@aihot/site";
-import { RELEASE } from "@aihot/industry/taxonomy";
+import type { ReportNavigationEntry, ReportKind } from "@yuanjian/contracts/site";
+import { beijingDate, beijingWeekday, isoWeekLabel, isoWeekRange } from "@yuanjian/contracts/time";
+import { EDITION_WHEN, REPORTS, SITE, subjectAfter } from "@yuanjian/site";
+import { RELEASE } from "@yuanjian/industry/taxonomy";
 import { monthDay, weekdayShort } from "../../lib/format.ts";
 
 export const KINDS: ReportKind[] = ["daily", "weekly", "monthly"];

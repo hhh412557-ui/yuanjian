@@ -9,9 +9,9 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
-import { DEPLOYMENT } from "@aihot/site";
-import { REPO_ROOT } from "@aihot/backend/config";
-import { closeDb } from "@aihot/backend/db";
+import { DEPLOYMENT } from "@yuanjian/site";
+import { REPO_ROOT } from "@yuanjian/backend/config";
+import { closeDb } from "@yuanjian/backend/db";
 import {
   SELECTION_PROMPT_VERSION,
   buildScoreInput,
@@ -21,8 +21,8 @@ import {
   tierThreshold,
   type AnalysisRun,
   type AnalyzeInputArticle,
-} from "@aihot/backend/editorial/analyze";
-import { importSelectBenchRun } from "@aihot/backend/admin/selectbench";
+} from "@yuanjian/backend/editorial/analyze";
+import { importSelectBenchRun } from "@yuanjian/backend/admin/selectbench";
 import { evalModels, pmap, positiveInt, safeReportNamePart, usageFor } from "./eval-tools.ts";
 
 // Without options: the site's gold set (site.ts DEPLOYMENT.selectionGold), else the whole of .data/gold.jsonl

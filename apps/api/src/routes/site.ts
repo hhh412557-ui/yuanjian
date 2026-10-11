@@ -1,23 +1,23 @@
 // First-party site API (/api/site/*). Not public, not versioned, never called /api/v2.
 // Reads through the same public read layer as v1; no cookies are read or set.
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { isCategoryKey, isChannelKey, type CategoryKey, type ChannelKey } from "@aihot/contracts/taxonomy";
-import type { ReportIndexResponse, ReportLatestPage, ReportNavigationResponse, SearchSuggestions, SiteContact } from "@aihot/contracts/site";
-import { InvalidCursorError } from "@aihot/backend/lib/cursor";
-import { exportMarkdown, loadItemDetail } from "@aihot/backend/publication/detail";
-import { loadPool, SearchBusyError } from "@aihot/backend/publication/pool";
-import { loadTimeline } from "@aihot/backend/publication/timeline";
-import { loadStoryFollowups } from "@aihot/backend/publication/followups";
-import { loadGroupReports } from "@aihot/backend/publication/groups";
-import { hotSearchLinks, loadHotStrip } from "@aihot/backend/publication/hot";
-import { loadChangelog, siteMeta } from "@aihot/backend/site/meta";
-import { loadContact, loadMakerAvatar } from "@aihot/backend/site/contact";
-import { loadSiteStats } from "@aihot/backend/site/stats";
-import { itemAvailability } from "@aihot/backend/publication/availability";
-import { listTopicSummaries, loadTopicPage, topicBrowseLinks } from "@aihot/backend/publication/topics";
+import { isCategoryKey, isChannelKey, type CategoryKey, type ChannelKey } from "@yuanjian/contracts/taxonomy";
+import type { ReportIndexResponse, ReportLatestPage, ReportNavigationResponse, SearchSuggestions, SiteContact } from "@yuanjian/contracts/site";
+import { InvalidCursorError } from "@yuanjian/backend/lib/cursor";
+import { exportMarkdown, loadItemDetail } from "@yuanjian/backend/publication/detail";
+import { loadPool, SearchBusyError } from "@yuanjian/backend/publication/pool";
+import { loadTimeline } from "@yuanjian/backend/publication/timeline";
+import { loadStoryFollowups } from "@yuanjian/backend/publication/followups";
+import { loadGroupReports } from "@yuanjian/backend/publication/groups";
+import { hotSearchLinks, loadHotStrip } from "@yuanjian/backend/publication/hot";
+import { loadChangelog, siteMeta } from "@yuanjian/backend/site/meta";
+import { loadContact, loadMakerAvatar } from "@yuanjian/backend/site/contact";
+import { loadSiteStats } from "@yuanjian/backend/site/stats";
+import { itemAvailability } from "@yuanjian/backend/publication/availability";
+import { listTopicSummaries, loadTopicPage, topicBrowseLinks } from "@yuanjian/backend/publication/topics";
 import { registerFeedback } from "./feedback.ts";
-import { loadHot, loadStoryDetail, resolveStory } from "@aihot/backend/publication/stories";
-import { listReports, loadReport, reportNavigation, loadReportNavigation, loadReportMonth, type ReportKind } from "@aihot/backend/publication/reports";
+import { loadHot, loadStoryDetail, resolveStory } from "@yuanjian/backend/publication/stories";
+import { listReports, loadReport, reportNavigation, loadReportNavigation, loadReportMonth, type ReportKind } from "@yuanjian/backend/publication/reports";
 import { looseQuery, sendJsonWithEtag, sendProblem } from "../http/respond.ts";
 
 type Handler = (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>;

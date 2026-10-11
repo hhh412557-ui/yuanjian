@@ -1,5 +1,5 @@
 {
-  "name": "@aihot/worker",
+  "name": "@yuanjian/worker",
   "private": true,
   "type": "module",
   "scripts": {
@@ -7,9 +7,9 @@
     "start": "node src/main.ts"
   },
   "dependencies": {
-    "@aihot/backend": "*",
-    "@aihot/contracts": "*",
-    "@aihot/industry": "*",
-    "@aihot/site": "*"
+    "@yuanjian/backend": "*",
+    "@yuanjian/contracts": "*",
+    "@yuanjian/industry": "*",
+    "@yuanjian/site": "*"
   }
 }

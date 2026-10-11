@@ -4,10 +4,10 @@
 import "./setup.ts";
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
-import { closeDb, sql } from "@aihot/backend/db";
-import { getBoss, stopBoss } from "@aihot/backend/jobs/queue";
-import { installModules } from "@aihot/backend/modules";
-import { runsOverview } from "@aihot/backend/admin/runs";
+import { closeDb, sql } from "@yuanjian/backend/db";
+import { getBoss, stopBoss } from "@yuanjian/backend/jobs/queue";
+import { installModules } from "@yuanjian/backend/modules";
+import { runsOverview } from "@yuanjian/backend/admin/runs";
 import { registerSchedules } from "../apps/worker/src/schedules.ts";
 
 after(async () => { await stopBoss(); await closeDb(); });

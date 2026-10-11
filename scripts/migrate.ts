@@ -75,8 +75,9 @@ export async function runMigrations(sql: postgres.Sql, root: string): Promise<nu
 }
 
 if (import.meta.main) {
-  const { REPO_ROOT } = await import("@aihot/backend/config");
-  const { closeDb, sql } = await import("@aihot/backend/db");
+  const { assertProductionSecrets, REPO_ROOT } = await import("@yuanjian/backend/config");
+  assertProductionSecrets([["auth", "POSTGRES_PASSWORD"], ["auth", "SESSION_SECRET"], ["auth", "IMG_PROXY_SIGN_SECRET"], ["auth", "ADMIN_PASSWORD"]]);
+  const { closeDb, sql } = await import("@yuanjian/backend/db");
   try { await runMigrations(sql, REPO_ROOT); }
   finally { await closeDb(); }
 }

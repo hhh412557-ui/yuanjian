@@ -3,9 +3,9 @@
 import { tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { after, test } from "node:test";
-import { sql, closeDb } from "@aihot/backend/db";
-import { topicPageCounts } from "@aihot/backend/publication/topics";
-import { loadLlmsAvailability } from "@aihot/backend/publication/llms";
+import { sql, closeDb } from "@yuanjian/backend/db";
+import { topicPageCounts } from "@yuanjian/backend/publication/topics";
+import { loadLlmsAvailability } from "@yuanjian/backend/publication/llms";
 import { buildApp } from "../apps/api/src/app.ts";
 
 const app = await buildApp();

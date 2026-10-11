@@ -4,14 +4,14 @@ import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { EDITION_TIMES, SITE } from "@aihot/site";
-import { CONTACT_ALIASES, PUBLIC_INTERFACE_VERSION } from "@aihot/contracts/http-policy";
-import { PUBLIC_API_CATEGORY_KEYS } from "@aihot/contracts/taxonomy";
-import { REPO_ROOT, config } from "@aihot/backend/config";
+import { EDITION_TIMES, SITE } from "@yuanjian/site";
+import { CONTACT_ALIASES, PUBLIC_INTERFACE_VERSION } from "@yuanjian/contracts/http-policy";
+import { PUBLIC_API_CATEGORY_KEYS } from "@yuanjian/contracts/taxonomy";
+import { REPO_ROOT, config } from "@yuanjian/backend/config";
 import { applyPublicHeaders, sendTextWithEtag } from "../http/respond.ts";
-import { loadSitemap } from "@aihot/backend/publication/sitemap";
-import { llmsTxt, loadLlmsAvailability } from "@aihot/backend/publication/llms";
-import { loadContact } from "@aihot/backend/site/contact";
+import { loadSitemap } from "@yuanjian/backend/publication/sitemap";
+import { llmsTxt, loadLlmsAvailability } from "@yuanjian/backend/publication/llms";
+import { loadContact } from "@yuanjian/backend/site/contact";
 
 const PUBLIC = path.join(REPO_ROOT, "site/public");
 /** The site's brand files (site/brand/), and how long its icons are cached. */

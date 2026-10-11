@@ -4,9 +4,9 @@ import { tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, test } from "node:test";
-import { closeDb, sql } from "@aihot/backend/db";
-import { latestCompositeCondition } from "@aihot/backend/publication/scope";
-import { candidateViews } from "@aihot/backend/events/recall";
+import { closeDb, sql } from "@yuanjian/backend/db";
+import { latestCompositeCondition } from "@yuanjian/backend/publication/scope";
+import { candidateViews } from "@yuanjian/backend/events/recall";
 
 after(closeDb);
 

@@ -3,7 +3,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { parseEnv } from "node:util";
-import { DEPLOYMENT, SITE } from "@aihot/site";
+import { DEPLOYMENT, SITE } from "@yuanjian/site";
 
 export const REPO_ROOT = path.resolve(import.meta.dirname, "../../..");
 
@@ -30,14 +30,38 @@ function bool(name: string, fallback: boolean): boolean {
   if (value === undefined || value === "") return fallback;
   return value === "true";
 }
+export interface McpTokenConfig {
+  label: string;
+  token: string;
+  themes: string[];
+}
+
+/**
+ * Parses MCP_TOKENS as label:token:theme|theme;label:token:theme.
+ * The token is kept only in process memory and is never included in a log payload.
+ */
+export function parseMcpTokens(raw: string | undefined): McpTokenConfig[] {
+  if (!raw?.trim()) return [];
+  return raw.split(";").map((entry, index) => {
+    const firstColon = entry.indexOf(":");
+    const secondColon = firstColon < 0 ? -1 : entry.indexOf(":", firstColon + 1);
+    if (firstColon <= 0 || secondColon <= firstColon + 1) throw new Error(`MCP_TOKENS entry ${index + 1} must be label:token:theme|theme`);
+    const label = entry.slice(0, firstColon).trim();
+    const token = entry.slice(firstColon + 1, secondColon).trim();
+    const themes = [...new Set(entry.slice(secondColon + 1).split("|").map((theme) => theme.trim()).filter(Boolean))];
+    if (!label || !token || !themes.length) throw new Error(`MCP_TOKENS entry ${index + 1} must include label, token and at least one theme`);
+    return { label, token, themes };
+  });
+}
+
 
 export const isProduction = env.NODE_ENV === "production";
 
-/** AIHOT_CREDENTIALS_DIR, else the site's own default (relative to the repository). */
-const credentialsDir = env.AIHOT_CREDENTIALS_DIR || DEPLOYMENT.credentialsDir;
+/** YUANJIAN_CREDENTIALS_DIR, else the site's own default (relative to the repository). */
+const credentialsDir = env.YUANJIAN_CREDENTIALS_DIR || DEPLOYMENT.credentialsDir;
 
 export const config = {
-  databaseUrl: str("DATABASE_URL", "postgres://127.0.0.1:5432/aihot"),
+  databaseUrl: str("DATABASE_URL", "postgres://127.0.0.1:5432/yuanjian"),
   apiPort: int("API_PORT", 3001),
   // Every generated absolute link uses this address, whatever Host a request arrives with.
   siteUrl: str("SITE_URL", SITE.defaultUrl).replace(/\/+$/, ""),
@@ -49,13 +73,15 @@ export const config = {
   indexNowKey: /^[0-9a-f]{32}$/.test(env.INDEXNOW_KEY ?? "") ? env.INDEXNOW_KEY! : null,
   /** Optional directory of per-group dotenv files (models.env, collectors.env, …); normally everything is in .env. */
   credentialsDir: credentialsDir ? path.resolve(REPO_ROOT, credentialsDir) : null,
-  dataDir: str("AIHOT_DATA_DIR", path.join(REPO_ROOT, ".data")),
+  dataDir: str("YUANJIAN_DATA_DIR", path.join(REPO_ROOT, ".data")),
   // Name of this deployment in alerts ("production" sends them without a prefix).
-  environmentName: str("AIHOT_ENVIRONMENT", isProduction ? "production" : "development"),
+  environmentName: str("YUANJIAN_ENVIRONMENT", isProduction ? "production" : "development"),
   // External-action valve: off unless the environment turns it on, like COLLECT_ENABLED (read by the
   // worker).
   modelCallsEnabled: bool("MODEL_CALLS_ENABLED", false),
   devAdmin: env.DEV_AUTH_ROLE === "admin" ? { displayName: env.DEV_AUTH_DISPLAY_NAME || "Dev Admin" } : null,
+  /** MCP caller credentials, parsed from MCP_TOKENS and kept in process memory. */
+  mcpTokens: parseMcpTokens(env.MCP_TOKENS ?? env.plaintextMCP_TOKENS),
   /** The admin password (at least 12 characters). Feishu sign-in below is optional. */
   adminPassword: env.ADMIN_PASSWORD || null,
   adminUnionIds: (env.ADMIN_FEISHU_UNION_IDS || "").split(",").map((v) => v.trim()).filter(Boolean),
@@ -66,13 +92,13 @@ export type CredentialGroup = "models" | "collectors" | "integrations" | "auth";
 
 const groupCache = new Map<CredentialGroup, Record<string, string>>();
 
-/** The file a group is kept in, under AIHOT_CREDENTIALS_DIR: the site's name for it, else <group>.env. */
+/** The file a group is kept in, under YUANJIAN_CREDENTIALS_DIR: the site's name for it, else <group>.env. */
 function groupFile(group: CredentialGroup): string {
   return DEPLOYMENT.credentialFiles[group] ?? `${group}.env`;
 }
 
 /**
- * Loads one credential group from an optional dotenv file (AIHOT_CREDENTIALS_DIR/<group>.env). Values
+ * Loads one credential group from an optional dotenv file (YUANJIAN_CREDENTIALS_DIR/<group>.env). Values
  * in the environment always win; a normal deployment only uses environment variables (.env).
  */
 export function credentials(group: CredentialGroup): Record<string, string> {
@@ -99,7 +125,8 @@ export function assertProductionSecrets(names: ReadonlyArray<readonly [Credentia
   const problems: string[] = [];
   for (const [group, name] of names) {
     const value = credential(group, name);
-    if (!value || PLACEHOLDER.test(value) || value.length < 8) problems.push(name);
+    const minimum = name === "ADMIN_PASSWORD" ? 12 : 8;
+    if (!value || PLACEHOLDER.test(value) || value.length < minimum) problems.push(name);
   }
   for (const key of Object.keys(env)) if (key.startsWith("DEV_AUTH_")) problems.push(`${key} (dev login bypass)`);
   if (config.allowPrivateNetworkFetch) problems.push("ALLOW_PRIVATE_NETWORK_FETCH");

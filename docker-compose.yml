@@ -1,4 +1,4 @@
-# docker compose up -d --build     → http://localhost:3100   (the admin is at /admin)
+# docker compose up -d --build     → http://localhost:3100   (host 3100 -> web container 3000; API loopback 3001 -> container 3001; admin at /admin)
 # docker compose --profile https up -d --build   → HTTPS for SITE_DOMAIN through Caddy
 name: yxzc
 
@@ -12,8 +12,9 @@ x-backend: &backend
   env_file: .env
   environment: &backend-env
     NODE_ENV: production
-    DATABASE_URL: postgres://yxzc:${POSTGRES_PASSWORD:-yxzc}@db:5432/yxzc
-    AIHOT_DATA_DIR: /data
+    DATABASE_URL: postgres://yxzc:${POSTGRES_PASSWORD}@db:5432/yxzc
+    MCP_TOKENS: ${MCP_TOKENS:-}
+    YUANJIAN_DATA_DIR: /data
     API_BASE_URL: http://api:3001
     # No proxy in front limits pushes to /api/ingest/items: the api does (per client and minute; 0 turns it off).
     INGEST_RATE_LIMIT: ${INGEST_RATE_LIMIT:-10}
@@ -29,7 +30,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: yxzc
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-yxzc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: yxzc
     volumes:
       - db:/var/lib/postgresql/data
@@ -52,6 +53,9 @@ services:
       <<: *backend-env
       API_HOST: 0.0.0.0
       API_PORT: "3001"
+    # Keep the API available to the local dev web on 3000, but never expose it to the LAN.
+    ports:
+      - "127.0.0.1:${API_HOST_PORT:-3001}:3001"
     depends_on:
       setup:
         condition: service_completed_successfully
@@ -75,7 +79,7 @@ services:
       API_BASE_URL: http://api:3001
       SITE_URL: ${SITE_URL:-http://localhost:3100}
       TRUST_PROXY: ${TRUST_PROXY:-false}
-      AIHOT_RELEASE: ${AIHOT_RELEASE:-}
+      YUANJIAN_RELEASE: ${YUANJIAN_RELEASE:-}
       WEB_HOST: 0.0.0.0
       WEB_PORT: "3000"
     ports:

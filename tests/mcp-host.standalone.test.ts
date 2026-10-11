@@ -10,7 +10,7 @@ import { request } from "node:http";
 import { after, test } from "node:test";
 import { promisify } from "node:util";
 import Fastify from "fastify";
-import { config } from "@aihot/backend/config";
+import { config } from "@yuanjian/backend/config";
 import { registerMcp } from "../apps/api/src/routes/mcp.ts";
 
 const initialize = {
@@ -26,7 +26,7 @@ after(() => app.close());
 function post(headers: Record<string, string | string[]>) {
   return app.inject({
     method: "POST", url: "/api/mcp", payload: initialize,
-    headers: { "content-type": "application/json", accept: "application/json, text/event-stream", ...headers },
+    headers: { "content-type": "application/json", accept: "application/json, text/event-stream", authorization: "Bearer yxzc_test_token", ...headers },
   });
 }
 
@@ -90,7 +90,7 @@ test("MCP refuses malformed or other Host and forwarded authorities", async () =
 function rawRequest(address: string, fields: string[]) {
   return new Promise<{ status: number | undefined; body: string; cache: string | undefined }>((resolve, reject) => {
     const req = request(`${address}/api/mcp`, {
-      method: "POST", setHost: false, headers: [...fields, "Content-Type", "application/json", "Accept", "application/json, text/event-stream"],
+      method: "POST", setHost: false, headers: [...fields, "Authorization", "Bearer yxzc_test_token", "Content-Type", "application/json", "Accept", "application/json, text/event-stream"],
     }, (res) => {
       let body = "";
       res.setEncoding("utf8");
@@ -169,7 +169,7 @@ function checkConfiguration(siteUrl: string, allowedHosts: string, cases: Array<
     try {
       for (const { headers, status } of JSON.parse(process.argv[1])) {
         const response = await app.inject({ method: "POST", url: "/api/mcp", payload: ${JSON.stringify(initialize)},
-          headers: { accept: "application/json, text/event-stream", ...headers } });
+          headers: { accept: "application/json, text/event-stream", authorization: "Bearer yxzc_test_token", ...headers } });
         assert.equal(response.statusCode, status, JSON.stringify(headers) + ": " + response.body);
         assert.equal(response.headers["cache-control"], "no-store");
       }

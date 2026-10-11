@@ -1,23 +1,22 @@
-import { assertProductionSecrets, config } from "@aihot/backend/config";
-import { closeDb } from "@aihot/backend/db";
-import { installModules } from "@aihot/backend/modules";
-import { SERVER_MODULES } from "@aihot/site/modules/server";
-import { DEPLOYMENT } from "@aihot/site";
-import { feishuLoginConfigured } from "@aihot/backend/admin/auth";
-import { startHeartbeat } from "@aihot/backend/operations/heartbeat";
-import { startWorkerWatchdog } from "@aihot/backend/operations/watch";
+import { assertProductionSecrets, config } from "@yuanjian/backend/config";
+import { closeDb } from "@yuanjian/backend/db";
+import { installModules } from "@yuanjian/backend/modules";
+import { SERVER_MODULES } from "@yuanjian/site/modules/server";
+import { DEPLOYMENT } from "@yuanjian/site";
+import { startHeartbeat } from "@yuanjian/backend/operations/heartbeat";
+import { startWorkerWatchdog } from "@yuanjian/backend/operations/watch";
 import { buildApp } from "./app.ts";
 
 installModules(SERVER_MODULES);
 assertProductionSecrets([
   ["auth", "SESSION_SECRET"],
   ["auth", "IMG_PROXY_SIGN_SECRET"],
+  ["auth", "POSTGRES_PASSWORD"],
+  ["auth", "ADMIN_PASSWORD"],
   ...DEPLOYMENT.requiredSecrets,
 ]);
-// Somebody must be able to sign in to the admin.
-if (config.environmentName === "production" && !(config.adminPassword && config.adminPassword.length >= 12) && !feishuLoginConfigured()) {
-  throw new Error("Refusing to start in production: set ADMIN_PASSWORD (at least 12 characters) or configure Feishu sign-in");
-}
+// MCP can issue and persist profiles through the onboarding tools. MCP_TOKENS remains an optional
+// compatibility path for pre-provisioned callers; database-backed profiles are checked at request time.
 
 const app = await buildApp();
 await app.listen({ port: config.apiPort, host: process.env.API_HOST || "127.0.0.1" });

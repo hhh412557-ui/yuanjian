@@ -4,8 +4,8 @@
 import { tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { closeDb, sql } from "@aihot/backend/db";
-import { loadPool } from "@aihot/backend/publication/pool";
+import { closeDb, sql } from "@yuanjian/backend/db";
+import { loadPool } from "@yuanjian/backend/publication/pool";
 
 const T = `relevance-${tag()}`;
 const now = new Date("2026-01-01T12:00:00Z");
@@ -17,7 +17,7 @@ before(async () => {
 });
 
 async function add(suffix: string, direct: string, body: string, options: {
-  title?: string; age?: number; channel?: "news" | "x"; category?: "vulnerability"; tags?: string[];
+  title?: string; age?: number; channel?: "news" | "x"; category?: "vulnerability" | "ai-models"; tags?: string[];
   visibility?: string; eligible?: boolean; future?: boolean; noSearchRow?: boolean;
 } = {}) {
   const at = new Date(+now - (options.age ?? 60) * 1000);
@@ -65,7 +65,7 @@ test("company relevance retains tag-only candidates, boosts and unique totals", 
 test("relevance retains combined filters and literal LIKE characters", async () => {
   await add("filtered", "uv", "uv", { channel: "x", category: "vulnerability", tags: [T] });
   await add("wrong-channel", "uv", "uv", { category: "vulnerability", tags: [T] });
-  await add("wrong-category", "uv", "uv", { channel: "x", tags: [T] });
+  await add("wrong-category", "uv", "uv", { channel: "x", category: "ai-models", tags: [T] });
   await add("wrong-tag", "uv", "uv", { channel: "x", category: "vulnerability" });
   const filtered = await loadPool({ ...query("uv"), channel: "x", category: "vulnerability", tag: T });
   assert.deepEqual(filtered.items.map(item => item.id), [id("filtered")]);

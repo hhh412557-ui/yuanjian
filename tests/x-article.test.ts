@@ -5,16 +5,16 @@
 import { stub, tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { config } from "@aihot/backend/config";
-import { closeDb, sql } from "@aihot/backend/db";
-import { extractArticleBody } from "@aihot/backend/content/extract";
-import { upsertMaterial } from "@aihot/backend/content/materials";
-import { loadAnalyzeInput } from "@aihot/backend/editorial/input";
-import { renderContext } from "@aihot/backend/editorial/writing";
-import { stopBoss } from "@aihot/backend/jobs/queue";
-import { collectXShard } from "@aihot/backend/sources/collect";
-import { tweetToCandidate } from "@aihot/backend/sources/x";
-import type { SdTweet } from "@aihot/backend/providers/socialdata";
+import { config } from "@yuanjian/backend/config";
+import { closeDb, sql } from "@yuanjian/backend/db";
+import { extractArticleBody } from "@yuanjian/backend/content/extract";
+import { upsertMaterial } from "@yuanjian/backend/content/materials";
+import { loadAnalyzeInput } from "@yuanjian/backend/editorial/input";
+import { renderContext } from "@yuanjian/backend/editorial/writing";
+import { stopBoss } from "@yuanjian/backend/jobs/queue";
+import { collectXShard } from "@yuanjian/backend/sources/collect";
+import { tweetToCandidate } from "@yuanjian/backend/sources/x";
+import type { SdTweet } from "@yuanjian/backend/providers/socialdata";
 
 const T = tag();
 const HANDLE = `xa${T}`;

@@ -4,11 +4,11 @@
 import { tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { closeDb, sql } from "@aihot/backend/db";
-import { upsertMaterial } from "@aihot/backend/content/materials";
-import { getBoss, stopBoss } from "@aihot/backend/jobs/queue";
-import { collectFindings } from "@aihot/backend/operations/alerts";
-import { sourceHealthWeekly } from "@aihot/backend/operations/reports";
+import { closeDb, sql } from "@yuanjian/backend/db";
+import { upsertMaterial } from "@yuanjian/backend/content/materials";
+import { getBoss, stopBoss } from "@yuanjian/backend/jobs/queue";
+import { collectFindings } from "@yuanjian/backend/operations/alerts";
+import { sourceHealthWeekly } from "@yuanjian/backend/operations/reports";
 
 const T = tag();
 const now = Date.now();

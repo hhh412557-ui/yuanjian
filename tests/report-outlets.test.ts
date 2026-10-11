@@ -5,15 +5,15 @@
 import { tag } from './setup.ts';
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { closeDb, sql } from '@aihot/backend/db';
-import { upsertMaterial } from '@aihot/backend/content/materials';
-import { publishArticle } from '@aihot/backend/publication/publish';
-import { feedIssues, loadReport, v1Dailies, v1Daily, v1Period, v1Periods } from '@aihot/backend/publication/reports';
-import { reportFeed } from '@aihot/backend/publication/feeds';
-import { llmsTxt } from '@aihot/backend/publication/llms';
-import { stopBoss } from '@aihot/backend/jobs/queue';
+import { closeDb, sql } from '@yuanjian/backend/db';
+import { upsertMaterial } from '@yuanjian/backend/content/materials';
+import { publishArticle } from '@yuanjian/backend/publication/publish';
+import { feedIssues, loadReport, v1Dailies, v1Daily, v1Period, v1Periods } from '@yuanjian/backend/publication/reports';
+import { reportFeed } from '@yuanjian/backend/publication/feeds';
+import { llmsTxt } from '@yuanjian/backend/publication/llms';
+import { stopBoss } from '@yuanjian/backend/jobs/queue';
 import { buildApp } from '../apps/api/src/app.ts';
-import type { ReportKind } from '@aihot/contracts/site';
+import type { ReportKind } from '@yuanjian/contracts/site';
 
 const T = tag();
 const source = `report-outlets-${T}`;

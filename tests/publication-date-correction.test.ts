@@ -5,12 +5,12 @@
 import { tag } from './setup.ts';
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
-import { closeDb, sql } from '@aihot/backend/db';
-import { upsertMaterial } from '@aihot/backend/content/materials';
-import { correctPublicationDate, previewPublicationDateCorrection } from '@aihot/backend/admin/content';
-import { publishArticle } from '@aihot/backend/publication/publish';
-import { getBoss, stopBoss } from '@aihot/backend/jobs/queue';
-import { installModules } from '@aihot/backend/modules';
+import { closeDb, sql } from '@yuanjian/backend/db';
+import { upsertMaterial } from '@yuanjian/backend/content/materials';
+import { correctPublicationDate, previewPublicationDateCorrection } from '@yuanjian/backend/admin/content';
+import { publishArticle } from '@yuanjian/backend/publication/publish';
+import { getBoss, stopBoss } from '@yuanjian/backend/jobs/queue';
+import { installModules } from '@yuanjian/backend/modules';
 
 const T=tag();
 const source=`date-correction-${T}`;

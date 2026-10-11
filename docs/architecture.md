@@ -61,7 +61,7 @@ flowchart LR
 
 ## 模块
 
-框架里没有、只有你这个站要的功能（比如一个专门的榜单或监控页），做成模块：一个功能一个文件夹 `modules/<名字>/`，是一个名为 `@aihot/<名字>` 的 npm 包，装着它自己的后端、接口、页面、样式、数据库迁移和测试。
+框架里没有、只有你这个站要的功能（比如一个专门的榜单或监控页），做成模块：一个功能一个文件夹 `modules/<名字>/`，是一个名为 `@yuanjian/<名字>` 的 npm 包，装着它自己的后端、接口、页面、样式、数据库迁移和测试。
 
 | 文件 | 内容 |
 |---|---|
@@ -93,7 +93,7 @@ flowchart LR
 | `/` `/all` `/hot` `/topics` `/daily` `/weekly` `/monthly` | 精选、全部动态、热门事件、主题、日报周报月报 |
 | `/feed.xml` `/feed/full.xml` `/feed/all.xml` `/feed/daily.xml` `/feed/weekly.xml` `/feed/monthly.xml` | RSS：精选、精选全文、全部、日报、周报、月报；另有按分类的 `/feed/category/<key>.xml` 和分类全文版 `/feed/full/category/<key>.xml` |
 | `/api/v1/` | 公开 API，文档在 `/openapi-v1.json`；给 Agent 读的 Markdown 从 `/api/v1/agent` 开始；说明页在 `/agent` |
-| `/api/mcp` | MCP 服务：最新、搜索、热点、事件、日报、周报、月报各一个工具，工具名前缀是 `site/site.ts` 的 `mcpPrefix` |
+| `/api/mcp` | MCP 服务：无 Token 时提供主题初始化工具；完成画像并带 Token 重连后提供最新、搜索、热点、事件、日报、周报、月报工具，工具名前缀是 `site/site.ts` 的 `mcpPrefix` |
 | `/llms.txt` `/sitemap.xml` `/robots.txt` | 给大模型和搜索引擎的说明（`robots.txt` 等根目录文件在 `site/public/`） |
 | `/admin` | 后台 |
 
@@ -101,8 +101,8 @@ flowchart LR
 
 ```bash
 npm run typecheck
-DATABASE_URL=postgres://127.0.0.1:5432/myhot_test npm test
-npm run build -w @aihot/web && node --test apps/web/tests/*.test.ts
+DATABASE_URL=postgres://127.0.0.1:5432/yuanjian_test npm test
+npm run build -w @yuanjian/web && node --test apps/web/tests/*.test.ts
 ```
 
 `DATABASE_URL` 指向的库名必须以 `_test` 或 `_ci` 结尾；没有会自动创建并迁移。每个测试文件在它的一份副本上并行运行，所以数据库账号要有建库权限（`CREATEDB`）。测试不访问任何外部服务：模型和付费接口都由本地假服务回答。

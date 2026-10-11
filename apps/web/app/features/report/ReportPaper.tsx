@@ -8,8 +8,8 @@
 import { IntentLink } from "../../components/ui/IntentLink";
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
-import type { ReportCitation, ReportDetail, ReportNavigationEntry } from "@aihot/contracts/site";
-import { REPORTS, SITE, subjectAfter, withSubject } from "@aihot/site";
+import type { ReportCitation, ReportDetail, ReportNavigationEntry } from "@yuanjian/contracts/site";
+import { REPORTS, SITE, subjectAfter, withSubject } from "@yuanjian/site";
 import { Badge } from "../../components/ui/Badge";
 import { IconArrowLeft, IconArrowRight, IconArrowUpRight } from "../../components/icons";
 import { Kicker } from "../../components/ui/Kicker";

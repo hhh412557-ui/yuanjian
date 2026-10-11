@@ -3,10 +3,10 @@
 // (CopyTag) when it has one.
 import { Fragment, useState } from "react";
 import { Link } from "react-router";
-import { PUBLIC_INTERFACE_VERSION } from "@aihot/contracts/http-policy";
-import { MCP_TOOL_NAMES as T, MCP_TOOLS } from "@aihot/contracts/mcp";
-import { feedCategoryLabel, PUBLIC_API_CATEGORY_KEYS } from "@aihot/contracts/taxonomy";
-import { ACCESS, AGENT, EDITION_WHEN, POLICY, REPORTS, SITE, subjectAfter, withSubject } from "@aihot/site";
+import { PUBLIC_INTERFACE_VERSION } from "@yuanjian/contracts/http-policy";
+import { MCP_TOOL_NAMES as T, MCP_TOOLS } from "@yuanjian/contracts/mcp";
+import { feedCategoryLabel, PUBLIC_API_CATEGORY_KEYS } from "@yuanjian/contracts/taxonomy";
+import { ACCESS, AGENT, EDITION_WHEN, POLICY, REPORTS, SITE, subjectAfter, withSubject } from "@yuanjian/site";
 import { CodeBlock, CopyButton } from "./CodeBlock";
 import { PillTabs } from "../../components/ui/Tabs";
 import type { AgentPanelProps } from "../../modules";
@@ -38,7 +38,7 @@ export function McpPanel(props: AgentPanelProps) {
   return (
     <>
       <PanelHead label={`MCP · ${V}`} title={`填一个地址，Agent 多出 ${mcpToolCount()} 个工具`}>
-        标准 Streamable HTTP，匿名只读，不用 token，也不读你的登录状态。适合 Claude 桌面版、Cursor、Cherry Studio 这类支持远程 MCP 的客户端。
+        标准 Streamable HTTP。首次无 Token 连接只提供主题初始化工具，Agent 会引导用户完成问卷并生成专属 Token；配置 Token 重连后才开放情报工具。适合 Claude 桌面版、Cursor、Cherry Studio 这类支持远程 MCP 的客户端。
       </PanelHead>
       <Steps>
         <Step n={1} title="复制服务地址">
@@ -50,7 +50,7 @@ export function McpPanel(props: AgentPanelProps) {
           {client === "claude" && <CodeBlock className="mb-0 mt-3" lang="bash" code={`claude mcp add --transport http ${name} '${url}'`} />}
           {client === "codex" && <CodeBlock className="mb-0 mt-3" lang="bash" code={`codex mcp add ${name} --url '${url}'`} />}
           {client === "json" && <CodeBlock className="mb-0 mt-3" title="Cursor、Cherry Studio 等用 JSON 配置的客户端" lang="json" code={JSON.stringify({ mcpServers: { [name]: { type: "http", url } } }, null, 2)} />}
-          {client === "other" && <p className="mt-3">{`在客户端的 MCP 或连接器设置里新建一项：名称填 ${name}，地址填上面的网址，认证选“无”，不要填 API Key。只支持本地命令的客户端，先用它自带的远程 MCP 代理。`}</p>}
+          {client === "other" && <p className="mt-3">{`在客户端的 MCP 或连接器设置里新建一项：名称填 ${name}，地址填上面的网址，并在 Authorization 中填管理员分配的 Bearer token。只支持本地命令的客户端，先用它自带的远程 MCP 代理。`}</p>}
         </Step>
         <Step n={3} title="让 Agent 调一次">
           <Ask text={`请调用 ${T.latest}，告诉我过去 24 小时最重要的${subjectAfter(" 5 条", "资讯")}，并附 ${SITE.name} 链接。`} />
@@ -93,7 +93,7 @@ export function McpPanel(props: AgentPanelProps) {
               <Bullets items={[
                 "先确认地址完整、客户端支持远程 Streamable HTTP；缺少新工具时，刷新工具列表或重新连接。",
                 ...AGENT_PARTS.flatMap((a) => a.mcpTroubles ?? []),
-                "服务不需要登录；客户端问起 OAuth 或 API Key，选“无”即可。",
+                "MCP 首次可无 Token 连接完成主题初始化；生成 Token 后必须配置 Authorization: Bearer，并重新连接。带格式错误或无效 Token 会返回 401。",
                 "收到 429 就按提示等一会儿，不要并发重试。",
                 <>还连不上：把客户端名称、版本和报错写到<Link viewTransition to="/feedback" className={link}>反馈页</Link>。</>,
               ]} />

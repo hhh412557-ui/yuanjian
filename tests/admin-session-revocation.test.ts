@@ -3,10 +3,10 @@ import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
 import { after, before, beforeEach, test } from "node:test";
 import Fastify from "fastify";
-import { config } from "@aihot/backend/config";
-import { closeDb, sql } from "@aihot/backend/db";
-import { sha256 } from "@aihot/backend/lib/ids";
-import { completeLogin, endSession, loginRedirect, passwordLogin, SESSION_COOKIE, sessionPrincipal } from "@aihot/backend/admin/auth";
+import { config } from "@yuanjian/backend/config";
+import { closeDb, sql } from "@yuanjian/backend/db";
+import { sha256 } from "@yuanjian/backend/lib/ids";
+import { completeLogin, endSession, loginRedirect, passwordLogin, SESSION_COOKIE, sessionPrincipal } from "@yuanjian/backend/admin/auth";
 import { adminHandler, registerAdminAuth } from "../apps/api/src/routes/admin-auth.ts";
 
 const T = tag();

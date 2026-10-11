@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import Fastify from "fastify";
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client";
-import { MCP_TOOLS } from "@aihot/contracts/mcp";
+import { MCP_TOOLS } from "@yuanjian/contracts/mcp";
 import { registerMcp } from "../apps/api/src/routes/mcp.ts";
 
 // The SDK advertises tools.listChanged unless told otherwise, and a 2026-07-28 client that handles list
@@ -20,7 +20,7 @@ test("an MCP client opens no listen stream, and one that asks is refused at once
     versionNegotiation: { mode: { pin: "2026-07-28" } },
   });
   try {
-    await client.connect(new StreamableHTTPClientTransport(new URL(`${address}/api/mcp`)));
+    await client.connect(new StreamableHTTPClientTransport(new URL(`${address}/api/mcp`), { requestInit: { headers: { authorization: "Bearer yxzc_test_token" } } }));
     assert.equal((await client.listTools()).tools.length, MCP_TOOLS.length);
     assert.equal(client.getServerCapabilities()?.tools?.listChanged, false);
     assert.equal(client.autoOpenedSubscription, undefined);
@@ -29,7 +29,7 @@ test("an MCP client opens no listen stream, and one that asks is refused at once
     await assert.rejects(client.listen({ toolsListChanged: true }));
     const response = await fetch(`${address}/api/mcp`, {
       method: "POST",
-      headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "mcp-protocol-version": "2026-07-28", "mcp-method": "subscriptions/listen" },
+      headers: { authorization: "Bearer yxzc_test_token", "content-type": "application/json", accept: "application/json, text/event-stream", "mcp-protocol-version": "2026-07-28", "mcp-method": "subscriptions/listen" },
       body: JSON.stringify({ jsonrpc: "2.0", id: "listen-1", method: "subscriptions/listen", params: {
         _meta: { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} },
         notifications: { toolsListChanged: true },

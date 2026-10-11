@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.png">
-    <img src="docs/assets/banner-light.png" alt="AIHOT：每个行业，都可以有自己的 AIHOT。很多条信源流进中间的精选，再分给法律、人力资源、金融等各个行业" width="100%">
+    <img src="docs/assets/banner-light.png" alt="元见：从信息洪流中筛出值得阅读的 AI、时政、综合新闻与网络安全资讯" width="100%">
   </picture>
 </p>
 
@@ -10,12 +10,12 @@
   <img src="https://img.shields.io/badge/Node.js-24-176b75?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 24">
   <img src="https://img.shields.io/badge/PostgreSQL-17-176b75?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL 17">
   <img src="https://img.shields.io/badge/Docker-Compose-176b75?style=flat-square&logo=docker&logoColor=white" alt="Docker Compose">
-  <a href="https://aihot.news"><img src="https://img.shields.io/badge/%E7%BA%BF%E4%B8%8A%E5%8E%9F%E7%AB%99-aihot.news-202a30?style=flat-square" alt="线上原站 aihot.news"></a>
+  <img src="https://img.shields.io/badge/%E4%BA%A7%E5%93%81-%E5%85%83%E8%A7%81-176b75?style=flat-square" alt="元见">
 </p>
 
 <p align="center">
-  <b>一个自己找热点、自己写日报的网站框架。</b><br>
-  把信源换成你的，把精选标准换成你的 KnowHow，它就是你的行业热点站。
+  <b>元见智能服务中心：面向 AI、时政、综合新闻与网络安全的情报检索工作台。</b><br>
+  把公开信源、精选标准和主题初始化接入同一套本地可验证流程。
 </p>
 
 <p align="center">
@@ -24,36 +24,29 @@
 
 <p align="center">
   <a href="#跑起来">跑起来</a> ·
-  <a href="docs/customize.md">改成你的行业</a> ·
+  <a href="docs/customize.md">定制信源</a> ·
   <a href="#它是怎么工作的">它是怎么工作的</a> ·
   <a href="#文档">文档</a> ·
-  <a href="https://github.com/KKKKhazix/AIHOT/discussions">社区交流</a>
+  <a href="https://github.com/hhh412557-ui/yuanjian/discussions">社区交流</a>
 </p>
 
 <br>
 
 ## 这是什么
 
-[AIHOT](https://aihot.news) 是我做的一个 AI 热点网站。它每天从一批信源里收资料，用大模型先筛一遍、再独立打两次分，挑出真正值得看的，写成中文标题和摘要；把不同来源说的同一件事聚成一个事件，按有多少人在说排出热点；每天早上出一份日报。
+元见 / 元见智能服务中心是一个面向信息爆炸时代的情报检索与精选工作台。它从公开信源收集 AI、时政、综合新闻和网络安全等内容，用模型筛选、摘要和归并，把同一事件的多篇报道整理成一条更容易阅读的情报，并按日输出精选内容。
 
 这个仓库是它的引擎和框架：网站、后台、精选流程、聚簇和热度算法，**所有提示词的原文和入选门槛**，都在这里。
 
 ## 为什么开源
 
-这半年，很多做法律、做 HR、做金融、做贵金属的朋友问我，能不能也给他们的行业做一个。
-
-我做不了。我不懂你们的行业，不知道哪些信源有用，也不知道什么样的消息，对你们来说才叫热点。
-
-但你们懂。
-
-既然我没办法满足所有人，那就把火种交到大家自己手上。
+元见需要在可审计、可本地部署、可按行业知识调整的前提下，把分散信源整理成稳定的情报入口。开源这个工作区，是为了让团队能直接检查提示词、门槛、信源配置和运行流程，而不是只依赖一个不可见的线上服务。
 
 ## 说在前面
 
-- **我不是专业的开发者。** 我是设计师出身，半年前还看不太懂代码。这套代码是我和 AI 一起重写的，比以前干净了很多，但一定还有写得不好的地方。发现问题欢迎提 Issue，我不一定能很快回复，先说声抱歉。
-- **这是 AIHOT 的引擎。** 它和 AIHOT 线上跑的是同一份引擎代码，同步时直接从线上导出，不是精心打磨的通用框架。以后 AIHOT 的更新，我会尽量同步过来，但没法保证每一次都同步。模型榜、Codex 重置监控、主题页的大事记这些只对 AI 行业有意义的功能，以及 AIHOT 自己的运营工具，只留在 AIHOT 上。
-- **里面没有 AIHOT 的信源名单和运营数据。** 仓库带了 18 个公开的海外 AI 资讯源做示范，够你跑起来看效果；真正的信源，要换成你自己行业的。
-- **请不要用 AIHOT 的名字和 Logo。** 换上你自己的名字，它就是你的站。
+- **这是一个独立的元见站点。** 当前代码沿用成熟的信息采集、筛选、归组和成刊流程，并在此基础上加入元见的主题初始化、AI 与网络安全特色信源和后续 Skill 扩展位。
+- **信源和数据由本地部署自行维护。** 公开信源配置位于 `industry/sources.json`，运行数据进入本地 PostgreSQL，不依赖其他线上站点的数据接口。
+- **公开内容以摘要和原文链接为主。** 信源是否启用、抓取频率、授权边界和全文展示权限，需要在部署前逐项核验。
 
 ## 它是怎么工作的
 
@@ -71,7 +64,7 @@
   <img src="docs/assets/cluster-light.png" alt="五个来源的报道聚成一个事件，事件进入当前热点榜" width="100%">
 </picture>
 
-同一件事，官网发一篇、媒体转十篇、X 上吵一天，读者只需要看到一次。AIHOT 把它们聚成一个**事件**：先用标题摘要的向量（没配向量服务时比文字重合度）在最近两周里找候选，再让模型判断是同一件事、后续进展，还是两件事；拿不准的合并，写入前再让模型复核一遍（复核可以单独换一家模型，设 `GROUP_REVIEW_MODEL`）。
+同一件事，官网发一篇、媒体转十篇、X 上吵一天，读者只需要看到一次。元见把它们聚成一个**事件**：先用标题摘要的向量（没配向量服务时比文字重合度）在最近两周里找候选，再让模型判断是同一件事、后续进展，还是两件事；拿不准的合并，写入前再让模型复核一遍（复核可以单独换一家模型，设 `GROUP_REVIEW_MODEL`）。
 
 **热度**按事件算，不按文章算：48 小时内，每个独立来源只算一次，24 小时减半。重复抓取不会多算，一家媒体发十篇也只算一次，所以排在前面的，是真正有很多人在说的事。
 
@@ -79,7 +72,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/perf-dark.png">
-  <img src="docs/assets/perf-light.png" alt="AIHOT 线上实测：页面中位数 10 毫秒，95% 在 50 毫秒内；接口中位数 6 毫秒，95% 在 12 毫秒内；文章页 95% 在 14 毫秒内" width="100%">
+  <img src="docs/assets/perf-light.png" alt="本地验证环境实测：页面中位数 10 毫秒，95% 在 50 毫秒内；接口中位数 6 毫秒，95% 在 12 毫秒内；文章页 95% 在 14 毫秒内" width="100%">
 </picture>
 
 ## 你会得到什么
@@ -103,28 +96,38 @@
   <img src="docs/assets/shots-light.png" alt="首页的每日精选，关于页的信源河" width="100%">
 </picture>
 
-<p align="center"><sub>截图来自用示范信源跑起来的本地站，站名是默认的 MyHOT。</sub></p>
+<p align="center"><sub>截图来自元见本地验证环境；当前界面支持首次主题选择、情报试读和完整信息流。</sub></p>
 
 ## 跑起来
 
-想创建自己的独立站点，可以先点 [Use this template](https://github.com/KKKKhazix/AIHOT/generate)，再克隆你生成的仓库。想持续合并上游更新或贡献代码，建议先 Fork。下面的命令适合直接试用。
+这是元见的独立工作区。下面的命令适合在本地 Docker 环境试用。
 
 需要 [Docker](https://docs.docker.com/get-started/get-docker/)、[Node.js 24](https://nodejs.org/en/download)（运行 `init-env` 生成配置要用），和一个 OpenAI 兼容的模型 API Key（DeepSeek、千问、智谱都可以）。
 
 `init-env` 默认按 DeepSeek 配置。用千问、智谱等别家，照 `.env.example` 里的例子改 `.env` 的 `LLM_BASE_URL`、`LLM_MODEL` 和 `LLM_EXTRA_JSON`；用推理模型（先想再答）时，还要设 `LLM_REASONING_TOKENS` 给推理留出输出额度。
 
 ```bash
-git clone https://github.com/KKKKhazix/AIHOT.git myhot
-cd myhot
+git clone https://github.com/hhh412557-ui/yuanjian.git yuanjian
+cd yuanjian
 node scripts/init-env.ts --llm-key <你的模型 API Key>
 docker compose up -d --build
 ```
 
-打开 <http://localhost:3000>。后台在 `/admin`，管理员密码在 `.env` 的 `ADMIN_PASSWORD` 里。一两分钟后开始有内容，第一次导入的资料大约半小时处理完。
+Docker 默认打开 <http://localhost:3100>；宿主机 `3100` 映射到 Web 容器内部 `3000`。本地开发模式的 Web 地址才是 <http://localhost:3000>。后台在 `/admin`，管理员密码在 `.env` 的 `ADMIN_PASSWORD` 里。一两分钟后开始有内容，第一次导入的资料大约半小时处理完。
+
+### 默认端口
+
+| 场景 | 地址 | 说明 |
+|---|---|---|
+| 本地开发 Web | `http://localhost:3000` | `npm run dev -w @yuanjian/web` |
+| Docker 对外 Web | `http://localhost:3100` | 宿主机 `3100` 映射到容器 `3000` |
+| API | `http://localhost:3001` | Docker 仅绑定本机回环地址，供本地开发 Web 复用；容器内由 `web` 访问 `api:3001` |
+
+这样本地开发 Web（3000）和 Docker Web（3100）可以读取同一份 Docker 数据；API 的 `3001` 不对局域网或公网开放。若完全使用 Docker，只访问 `http://localhost:3100` 即可。
 
 机器上没有 Node、服务器在中国大陆、要配域名和 HTTPS，或者不用 Docker、直接在 Linux、macOS 上跑（Windows 用 WSL2），见 [部署](docs/deploy.md)。
 
-站点跑起来后，打开 `/agent` 可以复制 MCP、RSS 或 API 的接入方式；只能读网页的 Agent 从 `/api/v1/agent` 开始；接口说明在 `/openapi-v1.json`。
+站点跑起来后，打开 `/agent` 可以复制 MCP、RSS 或 API 的接入方式；MCP 首次无 Token 会先提供主题初始化工具，完成问卷并配置生成的 Token、重新连接后才提供完整情报工具；只能读网页的 Agent 从 `/api/v1/agent` 开始；接口说明在 `/openapi-v1.json`。
 
 ## 把它改成你的行业
 
@@ -167,20 +170,10 @@ docker compose up -d --build
 
 ## 交流与贡献
 
-部署和使用问题到 [问答区](https://github.com/KKKKhazix/AIHOT/discussions/categories/q-a)，新想法到 [想法交流区](https://github.com/KKKKhazix/AIHOT/discussions/categories/ideas)，欢迎在 [作品展示区](https://github.com/KKKKhazix/AIHOT/discussions/categories/show-and-tell) 分享你做出的行业热点站。
+部署和使用问题到 [问答区](https://github.com/hhh412557-ui/yuanjian/discussions/categories/q-a)，新想法到 [想法交流区](https://github.com/hhh412557-ui/yuanjian/discussions/categories/ideas)，欢迎在 [作品展示区](https://github.com/hhh412557-ui/yuanjian/discussions/categories/show-and-tell) 分享你做出的行业热点站。
 
-发现 Bug 或有明确的功能建议，可以 [提交 Issue](https://github.com/KKKKhazix/AIHOT/issues/new/choose)。准备改代码前，先看 [贡献说明](CONTRIBUTING.md)；安全漏洞请走 [私密报告入口](SECURITY.md)。
-
-## 最后
-
-AIHOT 曾经只是我无数个深夜里，一个很小、很小的念头。
-
-我不知道它会被改成什么样子，会走到多远的地方。但这可能就是开源最浪漫的地方。
-
-剩下的路，就交给你们了。
-
-<p align="right">—— 数字生命卡兹克</p>
+发现 Bug 或有明确的功能建议，可以 [提交 Issue](https://github.com/hhh412557-ui/yuanjian/issues/new/choose)。准备改代码前，先看 [贡献说明](CONTRIBUTING.md)；安全漏洞请走 [私密报告入口](SECURITY.md)。
 
 ## 许可
 
-代码使用 [MIT 许可证](LICENSE)。AIHOT 的名字和 Logo 不在许可范围内。字体有自己的许可，见 [NOTICE](NOTICE)。
+代码使用 [MIT 许可证](LICENSE)。元见的名称、标识和第三方字体有自己的许可说明，见 [NOTICE](NOTICE)。

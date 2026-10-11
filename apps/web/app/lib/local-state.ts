@@ -2,15 +2,17 @@
 // keys and formats once readers have data under them: existing readers' data must stay readable as-is.
 // Storage failures degrade silently.
 import { useEffect, useSyncExternalStore } from "react";
-import { beijingDate } from "@aihot/contracts/time";
+import { beijingDate } from "@yuanjian/contracts/time";
+import type { TrialSurveyAnswers } from "../features/trial/data";
 
 export const KEYS = {
-  starred: "aihot-starred-items",
-  read: "aihot-read-items",
-  theme: "aihot-theme",
-  changelogSeen: "aihot-changelog-seen-version",
-  feedbackDraft: "aihot-feedback-draft-v1",
-  recentSearches: "aihot-recent-searches",
+  starred: "yuanjian-starred-items",
+  read: "yuanjian-read-items",
+  theme: "yuanjian-theme",
+  onboarding: "yuaneye-onboarding-v2",
+  changelogSeen: "yuanjian-changelog-seen-version",
+  feedbackDraft: "yuanjian-feedback-draft-v1",
+  recentSearches: "yuanjian-recent-searches",
 } as const;
 
 const STARRED_LIMIT = 500;
@@ -112,6 +114,7 @@ function subscribeKey(key: string) {
 const subscribeStarred = subscribeKey(KEYS.starred);
 const subscribeRead = subscribeKey(KEYS.read);
 const subscribeTheme = subscribeKey(KEYS.theme);
+const subscribeOnboarding = subscribeKey(KEYS.onboarding);
 const subscribeChangelog = subscribeKey(KEYS.changelogSeen);
 const subscribeRecentSearches = subscribeKey(KEYS.recentSearches);
 
@@ -243,6 +246,63 @@ export function setThemePreference(pref: ThemePreference) {
   invalidate(KEYS.theme);
 }
 
+export type OnboardingPhase = "picker" | "demo" | "complete";
+export interface OnboardingState {
+  phase: OnboardingPhase;
+  topics: string[];
+  completed: boolean;
+}
+
+const EMPTY_ONBOARDING: OnboardingState = { phase: "picker", topics: [], completed: false };
+const ONBOARDING_PROFILE_KEY = "yuaneye-onboarding-profile-v1";
+const EMPTY_TRIAL_PROFILE: TrialSurveyAnswers = { focus: [], goal: null, depth: "standard", cadence: "daily" };
+
+function normalizeTrialProfile(value: unknown): TrialSurveyAnswers {
+  if (!value || typeof value !== "object") return EMPTY_TRIAL_PROFILE;
+  const profile = value as Partial<TrialSurveyAnswers>;
+  const focus = Array.isArray(profile.focus) ? profile.focus.filter((item): item is TrialSurveyAnswers["focus"][number] => item === "ai-practice" || item === "ai-market" || item === "security-risk" || item === "security-governance") : [];
+  const goal = profile.goal === "overview" || profile.goal === "decision" || profile.goal === "risk" || profile.goal === "briefing" ? profile.goal : null;
+  const depth = profile.depth === "quick" || profile.depth === "standard" || profile.depth === "deep" ? profile.depth : "standard";
+  const cadence = profile.cadence === "daily" || profile.cadence === "important" || profile.cadence === "weekly" ? profile.cadence : "daily";
+  return { focus: [...new Set(focus)], goal, depth, cadence };
+}
+
+export function getOnboardingProfile(): TrialSurveyAnswers {
+  return normalizeTrialProfile(readJson(ONBOARDING_PROFILE_KEY));
+}
+
+export function saveOnboardingProfile(profile: TrialSurveyAnswers) {
+  writeRaw(ONBOARDING_PROFILE_KEY, JSON.stringify(normalizeTrialProfile(profile)));
+}
+
+function getOnboardingState(): OnboardingState {
+  return cached(KEYS.onboarding, () => {
+    const parsed = readJson(KEYS.onboarding);
+    if (!parsed || typeof parsed !== "object") return EMPTY_ONBOARDING;
+    const value = parsed as { phase?: unknown; topics?: unknown };
+    const phase = value.phase === "demo" || value.phase === "complete" ? value.phase : "picker";
+    const topics = Array.isArray(value.topics) ? value.topics.filter((topic): topic is string => typeof topic === "string") : [];
+    return { phase, topics, completed: phase === "complete" };
+  });
+}
+
+function saveOnboarding(phase: OnboardingPhase, topics: string[]) {
+  writeRaw(KEYS.onboarding, JSON.stringify({ phase, topics: [...new Set(topics)] }));
+  invalidate(KEYS.onboarding);
+}
+
+export function saveOnboardingDemo(topics: string[]) {
+  saveOnboarding("demo", topics);
+}
+
+export function resetOnboarding(topics: string[] = []) {
+  saveOnboarding("picker", topics);
+}
+
+export function finishOnboarding(topics: string[]) {
+  saveOnboarding("complete", topics);
+}
+
 export function resolvedTheme(pref: ThemePreference = getThemePreference()): "light" | "dark" {
   if (pref) return pref;
   try {
@@ -324,7 +384,7 @@ export function clearRecentSearches() {
 }
 
 // the page the reader was on (feedback records where a problem was seen)
-const LAST_PAGE_KEY = "aihot:last-page";
+const LAST_PAGE_KEY = "yuanjian:last-page";
 const NOT_A_PLACE = /^\/(feedback|more)(\/|$)|^\/admin(\/|$)/;
 
 /** Called on every in-site navigation: remembers the latest real page, never feedback, "更多" or the admin. */
@@ -455,6 +515,10 @@ export function useReadSet(): Set<string> {
 
 export function useThemePreference(): ThemePreference {
   return useSyncExternalStore(subscribeTheme, getThemePreference, () => null);
+}
+
+export function useOnboardingState(): OnboardingState {
+  return useSyncExternalStore(subscribeOnboarding, getOnboardingState, () => EMPTY_ONBOARDING);
 }
 
 export function useChangelogSeen(): string | null {

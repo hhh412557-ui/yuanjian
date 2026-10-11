@@ -1,6 +1,6 @@
 import { type RouteConfig, type RouteConfigEntry, index, layout, route } from "@react-router/dev/routes";
-import type { ModulePage } from "@aihot/contracts/modules";
-import { MODULES } from "@aihot/site/modules";
+import type { ModulePage } from "@yuanjian/contracts/modules";
+import { MODULES } from "@yuanjian/site/modules";
 
 /** A module's route module, from the app directory. */
 const file = (module: string, path: string) => `../../../modules/${module}/${path}`;
@@ -31,6 +31,7 @@ export default [
   route("topics", "routes/topics.tsx"),
   route("topics/:slug", "routes/topic.tsx", { id: "topic" }),
   route("topics/:slug/page/:page", "routes/topic.tsx", { id: "topic-page" }),
+  route("trial", "routes/trial.tsx"),
   route("skills", "routes/skills.tsx"),
   route("about", "routes/about.tsx"),
   route("terms", "routes/terms.tsx"),

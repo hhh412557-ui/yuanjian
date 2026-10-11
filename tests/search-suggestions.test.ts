@@ -7,8 +7,8 @@ import "./setup.ts";
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { after, test } from "node:test";
-import { closeDb, sql } from "@aihot/backend/db";
-import type { HotEntry } from "@aihot/backend/events/hot";
+import { closeDb, sql } from "@yuanjian/backend/db";
+import type { HotEntry } from "@yuanjian/backend/events/hot";
 import { buildApp } from "../apps/api/src/app.ts";
 
 const app = await buildApp();
