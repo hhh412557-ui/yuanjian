@@ -25,18 +25,18 @@ jobs:
         image: postgres:17-alpine
         env:
           POSTGRES_PASSWORD: ci
-          POSTGRES_DB: yxzc_ci
+          POSTGRES_DB: yuanjian_ci
         ports: ["5432:5432"]
         options: >-
           --health-cmd "pg_isready -U postgres" --health-interval 2s --health-timeout 5s --health-retries 30
     env:
-      DATABASE_URL: postgres://postgres:ci@127.0.0.1:5432/yxzc_ci
+      DATABASE_URL: postgres://postgres:ci@127.0.0.1:5432/yuanjian_ci
       SITE_URL: http://127.0.0.1:3000
       API_BASE_URL: http://127.0.0.1:3001
       SESSION_SECRET: ci-session-secret-0123456789abcdef
       IMG_PROXY_SIGN_SECRET: ci-img-secret-0123456789abcdef
-      MCP_TOKENS: ci:yxzc_ci_token:ai-models
-      MCP_TOKEN: yxzc_ci_token
+      MCP_TOKENS: ci:yuanjian_ci_token:ai-models
+      MCP_TOKEN: yuanjian_ci_token
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -74,7 +74,7 @@ jobs:
       - name: Web tests
         run: node --test apps/web/tests/*.test.ts
 
-      # Each test file runs on its own copy of yxzc_ci (tests/databases.ts), which the run migrates and
+      # Each test file runs on its own copy of yuanjian_ci (tests/databases.ts), which the run migrates and
       # leaves empty; the smoke check then reads that empty database.
       - name: Backend tests
         run: npm test
@@ -106,7 +106,7 @@ jobs:
         run: |
           node scripts/init-env.ts --llm-key ci-not-a-real-key
           # No outside calls in CI: nothing is collected and no model is asked.
-          sed -i 's/^COLLECT_ENABLED=.*/COLLECT_ENABLED=false/; s/^MODEL_CALLS_ENABLED=.*/MODEL_CALLS_ENABLED=false/; s/^MCP_TOKENS=.*/MCP_TOKENS=ci:yxzc_ci_token:ai-models/' .env
+          sed -i 's/^COLLECT_ENABLED=.*/COLLECT_ENABLED=false/; s/^MODEL_CALLS_ENABLED=.*/MODEL_CALLS_ENABLED=false/; s/^MCP_TOKENS=.*/MCP_TOKENS=ci:yuanjian_ci_token:ai-models/' .env
           # The smoke check reaches the site by its compose service name.
           echo "MCP_ALLOWED_HOSTS=web" >> .env
       - name: Build and start with docker compose
@@ -116,7 +116,7 @@ jobs:
           for i in $(seq 1 90); do curl -fsS -o /dev/null http://127.0.0.1:3100/api/health 2>/dev/null && break; sleep 2; done
           docker compose ps
           docker compose run --rm --no-deps --entrypoint node setup scripts/smoke.ts --base http://web:3000
-          docker compose exec -T db psql -U yxzc -d yxzc -Atc "select count(*) from sources" | grep -qx "$(node -p "require('./industry/sources.json').sources.length")"
+          docker compose exec -T db psql -U yuanjian -d yuanjian -Atc "select count(*) from sources" | grep -qx "$(node -p "require('./industry/sources.json').sources.length")"
       - name: Logs
         if: failure()
         run: docker compose logs --tail 80

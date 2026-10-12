@@ -12,7 +12,7 @@ const LIMIT = 256 * 1024;
 const app = Fastify({ bodyLimit: 10 * 1024 * 1024 });
 registerMcp(app);
 after(() => app.close());
-const headers = { host: "localhost", authorization: "Bearer yxzc_test_token", "content-type": "application/json", accept: "application/json, text/event-stream" };
+const headers = { host: "localhost", authorization: "Bearer yuanjian_test_token", "content-type": "application/json", accept: "application/json, text/event-stream" };
 const initialize = (name: string) => JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: {
   protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name, version: "1.0.0" },
 } });

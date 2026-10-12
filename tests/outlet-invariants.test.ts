@@ -53,7 +53,7 @@ test("every search matches the source name readers see and excludes its internal
   const id = await fixture(`${visible}（${internal}）`);
   const address = await app.listen({ host: "127.0.0.1", port: 0 });
   const client = new Client({ name: "outlet-search", version: "1.0.0" });
-  await client.connect(new StreamableHTTPClientTransport(new URL(`${address}/api/mcp`), { requestInit: { headers: { authorization: "Bearer yxzc_test_token" } } }));
+  await client.connect(new StreamableHTTPClientTransport(new URL(`${address}/api/mcp`), { requestInit: { headers: { authorization: "Bearer yuanjian_test_token" } } }));
   try {
     for (const [query, expected] of [[visible, true], [internal, false]] as const) {
       for (const prefix of ["/api/site/pool?q=", "/api/v1/items?mode=all&q=", "/api/v1/agent/search?q="]) {

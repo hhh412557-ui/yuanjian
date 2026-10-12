@@ -51,7 +51,7 @@ test("API startup is quiet and an unexpected error retains the request, stack an
       assert.equal(busy.json().code, "temporarily_unavailable");
       assert.equal(busy.json().reason, undefined);
     }
-    const mcp = await app.inject({ method: "POST", url: "/api/mcp?yuanjian_actor=private-actor", headers: { authorization: "Bearer yxzc_test_token",
+    const mcp = await app.inject({ method: "POST", url: "/api/mcp?yuanjian_actor=private-actor", headers: { authorization: "Bearer yuanjian_test_token",
       host: "localhost", "content-type": "application/json", accept: "application/json, text/event-stream", "mcp-protocol-version": "2026-07-28", "mcp-method": "tools/call", "mcp-name": mcpToolName("log_check"),
     }, payload: { jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: mcpToolName("log_check"), arguments: {},
       _meta: { "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {} },

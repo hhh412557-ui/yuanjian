@@ -1,10 +1,18 @@
 # docker compose up -d --build     → http://localhost:3100   (host 3100 -> web container 3000; API loopback 3001 -> container 3001; admin at /admin)
 # docker compose --profile https up -d --build   → HTTPS for SITE_DOMAIN through Caddy
+#
+# NOTE: the project name and the database user/database below stay "yxzc" on purpose. Together they fix
+# the compose volume names (yxzc_db / yxzc_data) and the database identity, and the live PostgreSQL
+# volume was initialised with them. Renaming any of them makes compose create a brand-new empty volume:
+# the collected intelligence and every already-issued MCP token live in the old database and would
+# become unreachable. Migrate with pg_dump/restore before renaming. (New deployments have no such
+# history and can use the "yuanjian" names shown in docs/deploy.md and .env.example.)
+# Never run `docker compose down -v` here: it deletes the volumes.
 name: yxzc
 
 x-app: &app
   build: .
-  image: yxzc-app
+  image: yuanjian-app
   restart: unless-stopped
 
 x-backend: &backend

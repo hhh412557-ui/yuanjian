@@ -1,1 +1,1 @@
-{"name":"{{siteName}} — {{tagline}}","short_name":"永信至诚","description":"{{description}}","lang":"{{locale}}","start_url":"/","scope":"/","display":"standalone","background_color":"#102a43","theme_color":"#102a43","icons":[{"src":"/logo.svg","sizes":"any","type":"image/svg+xml"}]}
+{"name":"{{siteName}} — {{tagline}}","short_name":"元见","description":"{{description}}","lang":"{{locale}}","start_url":"/","scope":"/","display":"standalone","background_color":"#102a43","theme_color":"#102a43","icons":[{"src":"/logo.svg","sizes":"any","type":"image/svg+xml"}]}

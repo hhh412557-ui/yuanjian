@@ -11,7 +11,7 @@ const token = process.env.INGEST_TOKEN;
 if (!token) throw new Error("INGEST_TOKEN is required");
 
 const page = await fetch(sourceUrl, {
-  headers: { accept: "text/html,application/xhtml+xml", "user-agent": "YXZC-SecurityBot/1.0" },
+  headers: { accept: "text/html,application/xhtml+xml", "user-agent": "Yuanjian-SecurityBot/1.0" },
   signal: AbortSignal.timeout(30_000),
 });
 if (!page.ok) throw new Error(`official news fetch failed: HTTP ${page.status}`);

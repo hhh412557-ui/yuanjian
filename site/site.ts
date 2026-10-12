@@ -51,10 +51,10 @@ export const SITE = {
   /** 标准图标（favicon.ico、icon.png、icon-192.png、apple-icon.png、logo.svg）以外也放在网站根目录的图标，site/brand/ 里的文件名（选填）；manifest.webmanifest 或外站引用了它们时用。 */
   rootIcons: [] as string[],
   /**
-   * MCP 工具名的前缀（小写字母、数字、下划线），工具会叫 yxzc_get_latest、yxzc_search……
+   * MCP 工具名的前缀（小写字母、数字、下划线），工具会叫 yuanjian_get_latest、yuanjian_search……
    * 已经有人接入后就不要再改。
    */
-  mcpPrefix: "yxzc",
+  mcpPrefix: "yuanjian",
   /**
    * 公开接口（MCP、OpenAPI、llms.txt）的版本号，只升不降。
    * 改了接口里已有的字段或含义时升主版本，并在部署说明里写清。
@@ -75,7 +75,7 @@ export const SITE = {
     founder: null as null | { name: string; alternateName?: string; jobTitle?: string; description?: string; url?: string },
   },
   /** 抓取信源时报上的名字和版本（User-Agent 里用），不要冒用别的站。 */
-  crawlerName: "YXZC-InfoBot/1.0",
+  crawlerName: "Yuanjian-InfoBot/1.0",
 } as const;
 
 /** 使用规则和隐私说明两页（正文在 pages/ 里）。 */

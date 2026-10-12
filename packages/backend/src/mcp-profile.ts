@@ -5,7 +5,7 @@ import { credential } from "./config.ts";
 import { sql } from "./db.ts";
 
 const THEME_SET = new Set<string>(TRIAL_THEME_IDS);
-const TOKEN_PATTERN = /^yxzc_[A-Za-z0-9_-]{32,160}$/;
+const TOKEN_PATTERN = /^yuanjian_[A-Za-z0-9_-]{32,160}$/;
 const FOCUS_SET = new Set<string>(TRIAL_SURVEY_FOCUS.map((entry) => entry.id));
 const GOAL_SET = new Set<string>(TRIAL_SURVEY_GOALS.map((entry) => entry.id));
 const DEPTH_SET = new Set<string>(TRIAL_SURVEY_DEPTHS.map((entry) => entry.id));
@@ -163,7 +163,7 @@ export async function upsertMcpProfile(input: UpsertMcpProfileInput): Promise<Up
     if (!existing) throw new McpProfileRejected(401, "unauthorized", "Token 无效或已过期。");
     const profile = themes.length && survey ? await updateProfile(existing.id, themes, survey, label) : existing;
     if (input.rotate === true) {
-      const rotated = `yxzc_${randomBytes(48).toString("base64url")}`;
+      const rotated = `yuanjian_${randomBytes(48).toString("base64url")}`;
       const [row] = await sql<ProfileRow[]>`
         UPDATE mcp_profiles SET token_hash = ${tokenHash(rotated)}, token_prefix = ${rotated.slice(0, 16)}, updated_at = now()
         WHERE id = ${profile.id}
@@ -178,7 +178,7 @@ export async function upsertMcpProfile(input: UpsertMcpProfileInput): Promise<Up
   const finalLabel = label ?? normalizeLabel(undefined, input.source);
 
   for (let attempt = 0; attempt < 5; attempt++) {
-    const issuedToken = `yxzc_${randomBytes(48).toString("base64url")}`;
+    const issuedToken = `yuanjian_${randomBytes(48).toString("base64url")}`;
     try {
       const [row] = await sql<ProfileRow[]>`
         INSERT INTO mcp_profiles (id, token_hash, token_prefix, label, themes, survey, source)
@@ -197,7 +197,7 @@ const rateWindows = new Map<string, number[]>();
 
 /** Five new profiles per hour per privacy-preserving IP/agent fingerprint. */
 export function allowMcpProfileIssue(ip: string, userAgent: string): boolean {
-  const secret = credential("auth", "SESSION_SECRET") ?? "yxzc-profile-rate-dev-only";
+  const secret = credential("auth", "SESSION_SECRET") ?? "yuanjian-profile-rate-dev-only";
   const uaFamily = (userAgent.match(/(Chrome|Safari|Firefox|Edg|MicroMessenger|Mobile|Android|iPhone|iPad|Mac OS X|Windows)/g) ?? []).slice(0, 4).join("/");
   const fingerprint = createHmac("sha256", secret).update(`${ip}|${uaFamily}`).digest("hex");
   const now = Date.now();

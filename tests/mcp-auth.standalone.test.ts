@@ -5,7 +5,7 @@ import { after, test } from "node:test";
 import Fastify from "fastify";
 import { MCP_ONBOARDING_TOOL_NAMES, MCP_TOOL_NAMES } from "@yuanjian/contracts/mcp";
 
-process.env.MCP_TOKENS = "Alice:yxzc_aaa:vulnerability|threat-intel;Bob:yxzc_bbb:ai-products";
+process.env.MCP_TOKENS = "Alice:yuanjian_aaa:vulnerability|threat-intel;Bob:yuanjian_bbb:ai-products";
 const { registerMcp } = await import("../apps/api/src/routes/mcp.ts");
 
 const records: string[] = [];
@@ -44,17 +44,17 @@ test("MCP bootstraps topics without a token, then binds an authenticated caller 
   assert.equal(wrongToken.statusCode, 401);
   assert.equal(wrongToken.headers["www-authenticate"], 'Bearer realm="mcp"');
 
-  const alice = await post(initialize(3), "Bearer yxzc_aaa");
+  const alice = await post(initialize(3), "Bearer yuanjian_aaa");
   assert.equal(alice.statusCode, 200, alice.body);
   const aliceBody = resultBody(alice.body);
   assert.match(aliceBody.result?.instructions ?? "", /vulnerability.*threat-intel/);
 
-  const tools = await post({ jsonrpc: "2.0", id: 4, method: "tools/list", params: {} }, "Bearer yxzc_aaa");
+  const tools = await post({ jsonrpc: "2.0", id: 4, method: "tools/list", params: {} }, "Bearer yuanjian_aaa");
   assert.equal(tools.statusCode, 200, tools.body);
   const names = (resultBody(tools.body).result?.tools ?? []).map((tool) => tool.name).sort();
   assert.deepEqual(names, Object.values(MCP_TOOL_NAMES).sort());
 
-  const bob = await post(initialize(5), "Bearer yxzc_bbb");
+  const bob = await post(initialize(5), "Bearer yuanjian_bbb");
   assert.equal(bob.statusCode, 200, bob.body);
   assert.match(resultBody(bob.body).result?.instructions ?? "", /ai-products/);
 
@@ -62,5 +62,5 @@ test("MCP bootstraps topics without a token, then binds an authenticated caller 
   const logText = records.join("");
   assert.match(logText, /"caller":"Alice"/);
   assert.match(logText, /"caller":"Bob"/);
-  assert.doesNotMatch(logText, /yxzc_aaa|yxzc_bbb/);
+  assert.doesNotMatch(logText, /yuanjian_aaa|yuanjian_bbb/);
 });
