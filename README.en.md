@@ -97,7 +97,7 @@ The same thing happens once: the official site posts it, ten outlets repeat it, 
   <img src="docs/assets/shots-light.png" alt="The daily selection on the home page, and the river of sources on the about page" width="100%">
 </picture>
 
-<p align="center"><sub>Screenshots from the Yuanjian local validation environment; the current interface supports topic onboarding, intelligence trial reading and the full information feed.</sub></p>
+<p align="center"><sub>Interface illustration: the daily selection on the home page and the river of sources on the about page. Once your site is running, replace these with your own screenshots.</sub></p>
 
 ## Run it
 

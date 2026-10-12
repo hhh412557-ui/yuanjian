@@ -96,7 +96,7 @@
   <img src="docs/assets/shots-light.png" alt="首页的每日精选，关于页的信源河" width="100%">
 </picture>
 
-<p align="center"><sub>截图来自元见本地验证环境；当前界面支持首次主题选择、情报试读和完整信息流。</sub></p>
+<p align="center"><sub>界面示意：首页的每日精选，以及关于页的信源河。站点跑起来以后，可以把这里换成你自己的截图。</sub></p>
 
 ## 跑起来
 
