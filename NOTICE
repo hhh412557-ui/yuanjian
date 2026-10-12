@@ -1,11 +1,23 @@
-Yuanjian / 元见
-Copyright (c) 2026 hhh412557-ui. The code is licensed under the MIT License (LICENSE).
+元见 / Yuanjian
+Copyright (c) 2026 Yuanjian. All rights reserved.
 
-The Yuanjian / 元见 name and marks are project identity assets and are not covered by the MIT License unless explicitly stated.
+本仓库的代码、文档、提示词与配置使用「元见 · 非商业使用许可协议」，见 LICENSE。
+许可允许阅读、研究与非商业自用；任何商业用途、再分发与品牌使用均须事先取得书面授权。
+This repository is licensed under the Yuanjian Non-Commercial License (see LICENSE).
+It permits reading, study and non-commercial self-hosting only. Any commercial use,
+redistribution or brand use requires prior written permission.
 
+「元见」「Yuanjian」名称与标识属产品身份资产，不在上述许可的授权范围内，未经书面许可不得使用。
+The "元见" / "Yuanjian" name and marks are product identity assets and are not licensed
+for use without written permission.
+
+仓库内还包含按各自条款授权的第三方材料：
 This repository also contains third-party material under its own terms:
 
-- assets/og-fonts/: Noto Sans SC, SIL Open Font License 1.1 (assets/og-fonts/LICENSE).
+- assets/og-fonts/：Noto Sans SC，SIL Open Font License 1.1（见 assets/og-fonts/LICENSE）。
+  assets/og-fonts/: Noto Sans SC, SIL Open Font License 1.1 (assets/og-fonts/LICENSE).
 
-The demo sources in industry/sources.json are public feeds of their publishers. Their content belongs
-to them; by default the site shows only a summary and a link to the original.
+`industry/sources.json` 中的示例信源为各发布方的公开订阅源，其内容归发布方所有；站点默认只展示
+摘要和原文链接。
+The demo sources in industry/sources.json are public feeds of their publishers. Their
+content belongs to them; by default the site shows only a summary and a link to the original.

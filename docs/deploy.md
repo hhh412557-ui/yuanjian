@@ -5,8 +5,8 @@
 需要一台装了 Docker（带 Compose）的机器。云服务器建议至少 2 核、4 GB 内存，构建镜像时要用到。
 
 ```bash
-git clone <你的元见仓库地址> yxzc
-cd yxzc
+git clone <你的元见仓库地址> yuanjian
+cd yuanjian
 node scripts/init-env.ts --llm-key <你的模型 API Key>
 ```
 
@@ -25,7 +25,7 @@ RSS、分享链接、站点地图和 Agent Markdown 中的绝对链接都使用�
 `MCP_TOKENS` 是兼容旧部署的可选预配置项。网页或 MCP Agent 完成主题初始化后，新的专属 Token 会写入 PostgreSQL（只存摘要，不存明文），无需把每个用户写进 `.env`。每条预配置 token 的格式是 `label:token:theme|theme`，多个人用分号分隔，主题之间用竖线分隔，不能用逗号。例如：
 
 ```dotenv
-MCP_TOKENS=负责人:yxzc_aaa:vulnerability|threat-intel;同事A:yxzc_bbb:ai-products
+MCP_TOKENS=负责人:yuanjian_aaa:vulnerability|threat-intel;同事A:yuanjian_bbb:ai-products
 ```
 
 这里的 `label` 只用于日志识别，日志会记录“负责人”或“同事A”，不会记录实际 token；`token` 是发给 MCP 客户端的 Bearer 凭据；主题可以填 P0-1 主题 ID，也兼容公开 API 的 `category` 值。预配置 Token 连接成功后，服务会把该 token 对应的主题画像写入 MCP `instructions`，Agent 会优先按这些 category 取数。没有 Token 的新 MCP 连接只开放主题初始化工具，完成问卷并确认后才会发放情报工具的 Token。`.env` 只保存在服务器，不要提交 Git，也不要把 token 放进网页前端。
@@ -75,7 +75,7 @@ node scripts/smoke.ts --base http://192.168.1.20:3100
 node scripts/mcp-check.ts http://192.168.1.20:3100/api/mcp
 ```
 
-没有配置 `MCP_TOKEN` 时，最后一个检查会验证主题初始化工具；配置有效 Token 后会验证完整情报工具。首次使用者从网页主题问卷生成 Token，或让 Agent 先调用 `yxzc_start_topic_setup` 和 `yxzc_confirm_topic_setup` 完成初始化，再把 Token 配入客户端并重新连接。
+没有配置 `MCP_TOKEN` 时，最后一个检查会验证主题初始化工具；配置有效 Token 后会验证完整情报工具。首次使用者从网页主题问卷生成 Token，或让 Agent 先调用 `yuanjian_start_topic_setup` 和 `yuanjian_confirm_topic_setup` 完成初始化，再把 Token 配入客户端并重新连接。
 
 ### 首次部署的数据迁移
 
@@ -84,7 +84,7 @@ node scripts/mcp-check.ts http://192.168.1.20:3100/api/mcp
 在旧环境导出（推荐自定义格式）：
 
 ```bash
-docker compose exec -T db pg_dump -U yxzc -d yxzc -Fc > yxzc-$(date +%F).dump
+docker compose exec -T db pg_dump -U yuanjian -d yuanjian -Fc > yuanjian-$(date +%F).dump
 ```
 
 把 `.dump` 文件安全复制到新服务器，并先启动目标数据库：
@@ -250,14 +250,14 @@ MCP 的 `subscriptions/listen` 现在立即返回 HTTP 404 和 JSON-RPC `-32601 
 
 在 `.env` 里配置 `DB_BACKUP_STORE_*`（任何 S3 兼容的对象存储），每天 04:10 自动备份到那里。`DB_BACKUP_STORE_SECRET_ID`、`DB_BACKUP_STORE_SECRET_KEY`、`DB_BACKUP_STORE_BUCKET`、`DB_BACKUP_STORE_REGION` 四项都要填；不填 `DB_BACKUP_STORE_DOMAIN` 时按腾讯云 COS 拼地址（`<桶名>.cos.<地域>.myqcloud.com`），用其他 S3 兼容存储时，把这个存储桶的访问域名（含桶名，例如 AWS S3 的 `<桶名>.s3.<地域>.amazonaws.com`）填进 `DB_BACKUP_STORE_DOMAIN`。
 
-一次完整备份包含同一时间戳的数据库 `.dump` 和文件包 `.tar.gz`，文件名取自数据库名：Docker 里数据库叫 `yxzc`，所以是 `yxzc-<时间>.dump` 和 `yxzc-files-<时间>.tar.gz`。文件包保留 `uploads/` 以及仍存本地的 `feedback-screenshots/`，不包含图片缓存或本地备份目录。已经转发到飞书的图片只保留数据库中的外部引用，文件包不保存飞书上的图片。
+一次完整备份包含同一时间戳的数据库 `.dump` 和文件包 `.tar.gz`，文件名取自数据库名：Docker 里数据库叫 `yuanjian`，所以是 `yuanjian-<时间>.dump` 和 `yuanjian-files-<时间>.tar.gz`。文件包保留 `uploads/` 以及仍存本地的 `feedback-screenshots/`，不包含图片缓存或本地备份目录。已经转发到飞书的图片只保留数据库中的外部引用，文件包不保存飞书上的图片。
 
 恢复时同时取回这一对文件：使用与数据库版本兼容的 `pg_restore` 将 `.dump` 恢复到空数据库，再把文件包解压到数据目录根目录（Docker 中为 `/data`，非 Docker 使用 `YUANJIAN_DATA_DIR`，默认 `.data`），保留包内的子目录结构，并确保运行进程可读取这些文件。只恢复数据库不能找回仍由 `local:` 引用的反馈截图；旧备份中没有包含的文件也无法凭数据库引用恢复。
 
 下面的手动导出只包含数据库，不包含上述附件目录：
 
 ```bash
-docker compose exec -T db pg_dump -U yxzc yxzc | gzip > yxzc-$(date +%F).sql.gz
+docker compose exec -T db pg_dump -U yuanjian yuanjian | gzip > yuanjian-$(date +%F).sql.gz
 ```
 
 数据都在三个 Docker 卷里：`db`（数据库）、`data`（上传的图片、图片缓存、本地备份）、`caddy`（证书）。`docker compose down` 不会删除它们；`docker compose down -v` 会。

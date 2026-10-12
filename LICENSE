@@ -1,21 +1,55 @@
-MIT License
+元见 · 非商业使用许可协议
+Yuanjian Non-Commercial License
+版本 1.0 / Version 1.0 · 2026-10-12
 
-Copyright (c) 2026 hhh412557-ui
+版权所有 (c) 2026 元见（Yuanjian）。保留所有权利。
+Copyright (c) 2026 Yuanjian. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+本协议适用于本仓库中的源代码、文档、提示词与配置（以下统称「本软件」）。
+This license applies to the source code, documentation, prompts and configuration
+in this repository (the "Software").
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+在遵守下列条款的前提下，授予你一项非排他、不可转让、可撤销的许可：
+Subject to the terms below, you are granted a non-exclusive, non-transferable,
+revocable license:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+一、允许的用途 / Permitted use
+1. 阅读、下载并在本地复制本软件；
+   Read, download and copy the Software locally;
+2. 为非商业目的运行、测试、研究与修改本软件，包括个人学习、技术评估与非营利的内部实验；
+   Run, test, study and modify the Software for non-commercial purposes, including
+   personal learning, technical evaluation and non-commercial internal experiments;
+3. 在保留完整版权声明与本协议的前提下，进行非商业性的自用部署。
+   Make non-commercial self-hosted deployments, provided the copyright notice and
+   this license are kept intact.
+
+二、必须事先取得书面授权的用途 / Uses that require prior written permission
+1. 任何商业用途，包括但不限于：将本软件或其衍生作品用于对外提供的商业服务、收费订阅、
+   销售、租赁、随商业产品销售或分发，或以本软件为基础直接或间接获取商业利益；
+   Any commercial use, including but not limited to: using the Software or a derivative
+   work to provide a commercial service, paid subscription, sale, lease, or distribution
+   with a commercial product, or obtaining commercial benefit directly or indirectly
+   from the Software;
+2. 再分发、再许可、公开发布，或以镜像等方式对外提供本软件或其衍生作品的源代码、
+   二进制或容器镜像；
+   Redistributing, sublicensing, publicly publishing, or otherwise making the Software
+   or a derivative work available to third parties, in source, binary or container form;
+3. 使用「元见」「Yuanjian」名称与标识开展活动，或移除、修改本软件中的版权声明与产品标识。
+   Using the "元见" / "Yuanjian" name and marks, or removing or altering the copyright
+   notices and product marks in the Software.
+
+三、其他条款 / General
+1. 未获书面授权而实施上述行为，即构成对本协议的违反，作者保留追究法律责任的权利。
+   Performing any of the above without written permission violates this license; the
+   author reserves the right to pursue legal remedies.
+2. 如需商业授权，请与本仓库维护者联系，另行协商取得。
+   For commercial licensing, please contact the maintainers of this repository.
+3. 本软件按「现状」提供，不附带任何明示或默示的担保，包括但不限于对适销性、特定用途
+   适用性与不侵权的担保。在任何情况下，作者或版权持有人均不对因本软件或本软件的使用
+   而产生的任何索赔、损害或其他责任负责，无论其基于合同、侵权或其他事由。
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+   INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+   PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+   FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
