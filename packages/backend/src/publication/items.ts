@@ -84,7 +84,19 @@ export function categoryCondition(category: CategoryKey | null | undefined) {
 /** The public API's, RSS's and MCP's filter: every category the site publishes as this one (PUBLIC_CATEGORIES). */
 export function publicCategoryCondition(category: PublicApiCategoryKey | null | undefined) {
   if (!category) return sql``;
-  return sql`AND p.category IN ${sql(CATEGORY_KEYS.filter((k) => toPublicApiCategory(k) === category))}`;
+  return publicCategoriesCondition([category]);
+}
+
+/** The public API's, RSS's and MCP's filter for several published categories. */
+export function publicCategoriesCondition(categories: readonly PublicApiCategoryKey[] | null | undefined) {
+  if (!categories?.length) return sql``;
+  const wanted = new Set(categories);
+  const keys = CATEGORY_KEYS.filter((key) => {
+    const category = toPublicApiCategory(key);
+    return category !== null && wanted.has(category);
+  });
+  if (!keys.length) return sql``;
+  return sql`AND p.category IN ${sql(keys)}`;
 }
 
 export function tagCondition(tag: string | null | undefined) {

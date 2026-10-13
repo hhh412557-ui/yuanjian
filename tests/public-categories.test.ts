@@ -36,11 +36,22 @@ const ours = (titles: string[]) => titles.filter((t) => t.startsWith(`${T} `)).s
 test("a public category takes in the categories the site publishes as it, and only those", async () => {
   for (const key of PUBLIC_API_CATEGORY_KEYS) {
     const want = CATEGORY_KEYS.filter((k) => toPublicApiCategory(k) === key).map(title).sort();
-    const v1 = await v1Items({ mode: "selected", window: "24h", by: "timeline", category: key, q: null, limit: 100, cursor: null }, now);
+    const v1 = await v1Items({ mode: "selected", window: "24h", by: "timeline", categories: [key], q: null, limit: 100, cursor: null }, now);
     assert.deepEqual(ours(v1.items.map((i) => i.title)), want, `v1 and MCP, ${key}`);
     const rss = await itemFeed("selected", key, { now });
     assert.deepEqual(ours([...rss.matchAll(/<title><!\[CDATA\[(.*?)\]\]><\/title>/g)].map((m) => m[1]!)), want, `RSS, ${key}`);
   }
+});
+
+test("v1 accepts multiple public categories and returns the normalized category set", async () => {
+  const categories = PUBLIC_API_CATEGORY_KEYS.slice(0, 2);
+  const result = await v1Items({ mode: "selected", window: "24h", by: "timeline", categories: [...categories], q: null, limit: 100, cursor: null }, now);
+  const expected = CATEGORY_KEYS.filter((key) => {
+    const publicKey = toPublicApiCategory(key);
+    return publicKey !== null && categories.includes(publicKey);
+  }).map(title).sort();
+  assert.deepEqual(ours(result.items.map((item) => item.title)), expected);
+  assert.deepEqual(result.query.categories, [...categories].sort());
 });
 
 test("the website filters by each of its own categories", async () => {

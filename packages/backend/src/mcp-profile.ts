@@ -1,6 +1,8 @@
 import { createHash, createHmac, randomBytes, randomUUID } from "node:crypto";
-import { TRIAL_SURVEY_CADENCES, TRIAL_SURVEY_DEPTHS, TRIAL_SURVEY_FOCUS, TRIAL_SURVEY_GOALS, type TrialSurveyAnswers } from "@yuanjian/contracts/trial-profile";
+import { TRIAL_SURVEY_CADENCES, TRIAL_SURVEY_DEPTHS, TRIAL_SURVEY_FOCUS, TRIAL_SURVEY_GOALS, type TrialSurveyAnswers, type TrialSurveyCadenceId, type TrialSurveyDepthId, type TrialSurveyGoalId } from "@yuanjian/contracts/trial-profile";
 import { TRIAL_THEME_IDS, TRIAL_THEME_TO_CATEGORY, type TrialThemeId } from "@yuanjian/contracts/trial-themes";
+import { PUBLIC_API_CATEGORY_KEYS, type PublicApiCategoryKey } from "@yuanjian/contracts/taxonomy";
+import type { McpTokenConfig } from "./config.ts";
 import { credential } from "./config.ts";
 import { sql } from "./db.ts";
 
@@ -19,7 +21,7 @@ export interface McpProfile {
   id: string;
   label: string;
   themes: TrialThemeId[];
-  categories: string[];
+  categories: PublicApiCategoryKey[];
   survey: McpSurvey;
   source: McpProfileSource;
   createdAt: string;
@@ -62,6 +64,15 @@ export interface UpsertMcpProfileResult {
   token: string;
   issued: boolean;
   profile: McpProfile;
+}
+
+export interface CallerProfile {
+  label: string;
+  themes: string[];
+  categories: PublicApiCategoryKey[];
+  cadence: TrialSurveyCadenceId | null;
+  depth: TrialSurveyDepthId | null;
+  goal: TrialSurveyGoalId | null;
 }
 
 function tokenHash(token: string): string {
@@ -111,8 +122,33 @@ export function normalizeSurvey(value: unknown): McpSurvey {
   return { focus: focus as TrialSurveyAnswers["focus"], goal: row.goal as TrialSurveyAnswers["goal"], depth: row.depth as TrialSurveyAnswers["depth"], cadence: row.cadence as TrialSurveyAnswers["cadence"] };
 }
 
-export function categoriesForThemes(themes: readonly string[]): string[] {
-  return [...new Set(themes.flatMap((theme) => THEME_SET.has(theme) ? [TRIAL_THEME_TO_CATEGORY[theme as TrialThemeId]] : []))];
+export function categoriesForThemes(themes: readonly string[]): PublicApiCategoryKey[] {
+  const publicCategories = new Set<string>(PUBLIC_API_CATEGORY_KEYS);
+  return [...new Set(themes.flatMap((theme) => THEME_SET.has(theme)
+    ? [TRIAL_THEME_TO_CATEGORY[theme as TrialThemeId]]
+    : publicCategories.has(theme) ? [theme as PublicApiCategoryKey] : []))];
+}
+
+export function callerProfileFromToken(caller: McpTokenConfig): CallerProfile {
+  return {
+    label: caller.label,
+    themes: [...caller.themes],
+    categories: categoriesForThemes(caller.themes),
+    cadence: null,
+    depth: null,
+    goal: null,
+  };
+}
+
+export function callerProfileFromDb(profile: McpProfile): CallerProfile {
+  return {
+    label: profile.label,
+    themes: [...profile.themes],
+    categories: [...profile.categories],
+    cadence: profile.survey.cadence,
+    depth: profile.survey.depth,
+    goal: profile.survey.goal,
+  };
 }
 
 function profileFromRow(row: ProfileRow): McpProfile {

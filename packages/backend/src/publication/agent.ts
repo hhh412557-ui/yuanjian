@@ -11,6 +11,7 @@ import { serverModules } from "../modules.ts";
 import { siteUrl } from "./links.ts";
 import type { V1ItemPayload } from "./publish.ts";
 import type { DailyNote } from "./reports.ts";
+import { profileAnswerLine, type ProfileAnswerContext } from "../mcp-personalization.ts";
 import { publicSourceName } from "./rules.ts";
 import type { v1HotTopics, v1Story } from "./stories.ts";
 import { v1Items, type V1ItemsResult } from "./v1.ts";
@@ -61,39 +62,42 @@ const BRIEF_HINTS = [
 
 export interface LatestQuery { window: AgentWindow; mode: "selected" | "all"; category: PublicApiCategoryKey | null; limit: number }
 
-export function latestAnswer(res: V1ItemsResult, q: LatestQuery): string {
+export function latestAnswer(res: V1ItemsResult, q: LatestQuery, profile?: ProfileAnswerContext): string {
   const scope = q.mode === "selected" ? "精选" : "全部公开动态";
   const title = [`${SITE.name} ${scope}`, category(q.category), WINDOW_ZH[q.window]].filter(Boolean).join(" · ");
+  const profileLines = profile ? profileAnswerLine(profile) : [];
   if (!res.items.length) {
-    return answer([`# ${title}`, "", `${WINDOW_ZH[q.window]}没有符合条件的${scope}。`], null, [
+    return answer([`# ${title}`, "", ...profileLines, `${WINDOW_ZH[q.window]}没有符合条件的${scope}。`], null, [
       "如实告诉用户这段时间没有；可以换成 window=7d 或 mode=all 再查一次。",
       "不要用训练记忆补成“最新消息”。",
     ]);
   }
   const more = res.page.hasMore ? (q.limit < 30 ? "后面还有，调大 limit（最多 30）可以多看。" : "后面还有，范围更大时请缩小到某个分类或关键词。") : "";
-  return answer([`# ${title}`, "", `${res.items.length} 条，从新到旧，时间为北京时间。${more}`], itemLines(res.items), BRIEF_HINTS);
+  return answer([`# ${title}`, "", ...profileLines, `${res.items.length} 条，从新到旧，时间为北京时间。${more}`], itemLines(res.items), BRIEF_HINTS);
 }
 
 /** Editorial picks first; only when they have nothing is the whole public pool searched (as MCP always did). */
-export async function searchItems(q: string, window: AgentWindow, cat: PublicApiCategoryKey | null, limit: number, load = v1Items) {
-  const query = (mode: "selected" | "all") => ({ mode, window, by: "timeline" as const, category: cat, q, limit, cursor: null });
+export async function searchItems(q: string, window: AgentWindow, cat: PublicApiCategoryKey | readonly PublicApiCategoryKey[] | null, limit: number, load = v1Items) {
+  const categories = cat === null ? null : Array.isArray(cat) ? [...cat] : [cat as PublicApiCategoryKey];
+  const query = (mode: "selected" | "all") => ({ mode, window, by: "timeline" as const, categories, q, limit, cursor: null });
   const picks = await load(query("selected"));
   if (picks.items.length) return { res: picks, expanded: false };
   return { res: await load(query("all")), expanded: true };
 }
 
-export function searchAnswer(found: { res: V1ItemsResult; expanded: boolean }, q: { q: string; window: AgentWindow; category: PublicApiCategoryKey | null }): string {
+export function searchAnswer(found: { res: V1ItemsResult; expanded: boolean }, q: { q: string; window: AgentWindow; category: PublicApiCategoryKey | null }, profile?: ProfileAnswerContext): string {
   const title = [`${SITE.name} 搜索「${q.q}」`, category(q.category), WINDOW_ZH[q.window]].filter(Boolean).join(" · ");
   const { res, expanded } = found;
+  const profileLines = profile ? profileAnswerLine(profile) : [];
   if (!res.items.length) {
-    return answer([`# ${title}`, "", `${WINDOW_ZH[q.window]}的精选和全部公开动态里都没有相关报道。`], null, [
+    return answer([`# ${title}`, "", ...profileLines, `${WINDOW_ZH[q.window]}的精选和全部公开动态里都没有相关报道。`], null, [
       `如实告诉用户 ${SITE.name} ${WINDOW_ZH[q.window]}没有这方面的报道${q.window === "24h" ? "（可以用 window=7d 看最近一周）" : "；更早的内容这里查不到"}。`,
       "可以换个说法或更短的关键词再查一次（比如只用公司或产品名）。",
       "不要用训练记忆冒充最新消息。",
     ]);
   }
   const scope = expanded ? "精选里没有，以下来自全部公开动态（没有进入精选）。" : `以下是 ${SITE.name} 精选里的相关报道。`;
-  return answer([`# ${title}`, "", `${scope}${res.items.length} 条，从新到旧，时间为北京时间。`], itemLines(res.items), [
+  return answer([`# ${title}`, "", ...profileLines, `${scope}${res.items.length} 条，从新到旧，时间为北京时间。`], itemLines(res.items), [
     `只根据这些结果回答：这是 ${SITE.name} 收录的相关报道，不是全网搜索，别说成“全网只有这些”。`,
     ...(expanded ? [`告诉用户这些没有进入 ${SITE.name} 精选。`] : []),
     ...BRIEF_HINTS.slice(1),
@@ -102,9 +106,10 @@ export function searchAnswer(found: { res: V1ItemsResult; expanded: boolean }, q
 
 type HotTopics = Awaited<ReturnType<typeof v1HotTopics>>;
 
-export function hotAnswer(res: HotTopics, limit: number, via: Via): string {
+export function hotAnswer(res: HotTopics, limit: number, via: Via, profile?: ProfileAnswerContext): string {
   const items = res.items.slice(0, limit);
-  if (!items.length) return answer([`# ${SITE.name} 当前热点`, "", "热点榜暂时是空的。"], null, ["如实告诉用户暂时没有热点，可以改看最新精选。"]);
+  const profileLines = profile ? profileAnswerLine(profile) : [];
+  if (!items.length) return answer([`# ${SITE.name} 当前热点`, "", ...profileLines, "热点榜暂时是空的。"], null, ["如实告诉用户暂时没有热点，可以改看最新精选。"]);
   const data = items.flatMap((t) => {
     const publicId = t.links.story.split("/").pop()!;
     const sources = [...new Set(t.sourceNames.map(publicSourceName))];
@@ -116,7 +121,7 @@ export function hotAnswer(res: HotTopics, limit: number, via: Via): string {
       "",
     ];
   });
-  return answer([`# ${SITE.name} 当前热点 Top ${items.length}`, "", "多个独立信源正在同时讨论的事件，按名次排列；时间为北京时间。"], data, [
+  return answer([`# ${SITE.name} 当前热点 Top ${items.length}`, "", ...profileLines, "多个独立信源正在同时讨论的事件，按名次排列；时间为北京时间。"], data, [
     "按名次完整列出，写「第 N 名」；不要说热度分数，也不要把信源数量说成热度。",
     via === "http" ? "用户追问某个事件的来龙去脉、时间线或最新进展时，请求它的「来龙去脉」地址；不要自己拼地址。" : `用户追问某个事件的来龙去脉、时间线或最新进展时，用 ${T.story} 和上面给出的 public_id；不要猜。`,
     NO_INTERNALS,
@@ -170,7 +175,7 @@ function noteLines(note: DailyNote | undefined): string[] {
   ];
 }
 
-export function dailyAnswer(r: DailyReport, via: Via, notes: Map<string, DailyNote> = new Map()): string {
+export function dailyAnswer(r: DailyReport, via: Via, notes: Map<string, DailyNote> = new Map(), profile?: ProfileAnswerContext): string {
   const data: string[] = [];
   // The lead is the issue's first entry in its own words: name it, not its summary twice.
   const own = r.sections.some((s) => s.items.some((it) => it.title === r.lead?.title && it.summary === r.lead?.leadParagraph));
@@ -190,6 +195,7 @@ export function dailyAnswer(r: DailyReport, via: Via, notes: Map<string, DailyNo
   return answer([
     `# ${SITE.name} 日报 · ${r.date}（${beijingWeekday(r.date)}）`,
     "",
+    ...(profile ? ["本期日报是编辑整理的固定内容，不应用滚动查询的主题画像，栏目保持完整。", ""] : []),
     `收录北京时间 ${stamp(r.windowStart)} 至 ${stamp(r.windowEnd)} 的动态，${EDITION_WHEN.daily} 发布。日报页：${r.links.yuanjian}`,
     ...(data.length ? [] : ["这一期暂时没有可以展示的条目。"]),
   ], data.length ? data : null, [

@@ -3,7 +3,7 @@ import type { PublicApiCategoryKey } from "@yuanjian/contracts/taxonomy";
 import { sql, type Db } from "../db.ts";
 import { decodeCursor, encodeCursor, InvalidCursorError, queryBinding } from "../lib/cursor.ts";
 import { newShortId } from "../lib/ids.ts";
-import { publicCategoryCondition, API_ITEM_COLUMNS, API_ITEM_FROM, type ApiItemRow } from "./items.ts";
+import { publicCategoriesCondition, API_ITEM_COLUMNS, API_ITEM_FROM, type ApiItemRow } from "./items.ts";
 import { listedCondition, seatedCondition } from "./scope.ts";
 import { publicMatchCondition, searchTerms, withSearchCapacity } from "./pool.ts";
 import { sharedSearch } from "../lib/cache.ts";
@@ -13,7 +13,7 @@ export interface V1ItemsQuery {
   mode: "selected" | "all";
   window: "24h" | "7d";
   by: "timeline" | "published";
-  category: PublicApiCategoryKey | null;
+  categories: PublicApiCategoryKey[] | null;
   q: string | null;
   limit: number;
   cursor: string | null;
@@ -21,7 +21,7 @@ export interface V1ItemsQuery {
 
 export interface V1ItemsResult {
   schemaVersion: 1;
-  query: { mode: string; category: string | null; window: string; q: string | null; by: string; ordering: string };
+  query: { mode: string; categories: PublicApiCategoryKey[] | null; window: string; q: string | null; by: string; ordering: string };
   items: V1ItemPayload[];
   page: { count: number; hasMore: boolean; nextCursor: string | null };
 }
@@ -34,16 +34,25 @@ export function rowToV1(row: ApiItemRow): V1ItemPayload {
   });
 }
 
+function normalizeCategories(categories: readonly PublicApiCategoryKey[] | null): PublicApiCategoryKey[] | null {
+  return categories?.length ? [...new Set(categories)].sort() : null;
+}
+
+export function v1ItemsCacheKey(q: V1ItemsQuery): string {
+  return JSON.stringify([q.mode, q.window, q.by, normalizeCategories(q.categories), q.q, q.limit, q.cursor]);
+}
+
 /** Search callers across HTTP and tools share one read. */
 export const v1Items = sharedSearch(
-  (q: V1ItemsQuery) => JSON.stringify([q.mode, q.window, q.by, q.category, q.q, q.limit, q.cursor]),
+  v1ItemsCacheKey,
   queryItems, (q) => !!q.q?.trim(),
 );
 
 async function queryItems(query: V1ItemsQuery, now: Date): Promise<V1ItemsResult> {
   const windowMs = query.window === "24h" ? 86400000 : 7 * 86400000;
   const windowStart = new Date(now.getTime() - windowMs);
-  const binding = queryBinding({ m: query.mode, w: query.window, b: query.by, c: query.category, q: query.q });
+  const categories = normalizeCategories(query.categories);
+  const binding = queryBinding({ m: query.mode, w: query.window, b: query.by, c: categories, q: query.q });
   // by=timeline is the site's own order: a selected item at its reading-group anchor, anything else at its timeline time.
   const sortCol = query.by === "published" ? sql`coalesce(p.published_at, p.discovered_at)` : query.mode === "selected" ? sql`p.sort_at` : sql`p.timeline_at`;
   let after: { a: number; i: string } | null = null;
@@ -60,7 +69,7 @@ async function queryItems(query: V1ItemsQuery, now: Date): Promise<V1ItemsResult
 
   const run = (db: Db) => db<(ApiItemRow & { sort_at: Date })[]>`
     SELECT ${API_ITEM_COLUMNS}, ${sortCol} AS sort_at ${API_ITEM_FROM}
-    WHERE ${scope} ${publicCategoryCondition(query.category)} ${publicMatchCondition(terms)}
+    WHERE ${scope} ${publicCategoriesCondition(categories)} ${publicMatchCondition(terms)}
       AND ${sortCol} >= ${windowStart} AND ${sortCol} <= ${now}
       ${after ? sql`AND (${sortCol}, p.article_id) < (${new Date(after.a)}, ${after.i})` : sql``}
     ORDER BY ${sortCol} DESC, p.article_id DESC
@@ -73,7 +82,7 @@ async function queryItems(query: V1ItemsQuery, now: Date): Promise<V1ItemsResult
   return {
     schemaVersion: 1,
     query: {
-      mode: query.mode, category: query.category, window: query.window, q: query.q, by: query.by,
+      mode: query.mode, categories, window: query.window, q: query.q, by: query.by,
       ordering: query.by === "published" ? "publishedAtDesc" : "timelineDesc",
     },
     items: page.map(rowToV1),

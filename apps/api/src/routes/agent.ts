@@ -37,7 +37,7 @@ export function registerAgent(app: FastifyInstance) {
   app.get("/api/v1/agent/latest", publicHandler(async (req, reply) => {
     const q = strictQuery(req, ["window", "mode", "category", "limit"]);
     const p = { ...listParams(q), mode: enumParam(q.mode, "mode", ["selected", "all"] as const, "selected") };
-    const res = await v1Items({ ...p, by: "timeline", q: null, cursor: null });
+    const res = await v1Items({ mode: p.mode, window: p.window, categories: p.category ? [p.category] : null, by: "timeline", q: null, limit: p.limit, cursor: null });
     return markdown(req, reply, latestAnswer(res, p), "agent-latest", V1_OPERATIONS.items.cacheControl);
   }));
 

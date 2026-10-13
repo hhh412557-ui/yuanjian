@@ -98,7 +98,7 @@ export function registerV1(app: FastifyInstance) {
     }
     const limit = intParam(q.limit, "limit", 1, 100, 50);
     if (q.cursor !== undefined && q.cursor.length === 0) throw new InvalidCursorError("empty cursor");
-    const body = await v1Items({ mode, window, by, category, q: search, limit, cursor: q.cursor ?? null });
+    const body = await v1Items({ mode, window, by, categories: category ? [category] : null, q: search, limit, cursor: q.cursor ?? null });
     return sendV1(req, reply, body, { etagPrefix: "v1-items", cacheControl: V1_OPERATIONS.items.cacheControl });
   }));
 
