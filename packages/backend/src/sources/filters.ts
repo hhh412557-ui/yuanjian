@@ -13,18 +13,38 @@ export function admitListing<C extends Candidate>(candidates: C[], source: Sourc
   return filterPublicationWindow(kept, source.config.publishedAfter, now);
 }
 
+const GENERAL_NEWS_POLITICS_FILTER = {
+  dropMarkersTitleOnly: [
+    "大选", "选举", "竞选", "民调", "投票", "候选人", "总统", "总理", "首相", "议会", "国会", "参议院", "众议院", "政党", "内阁", "外交", "大使", "会晤", "峰会", "政治", "议员",
+    "election", "campaign", "poll", "ballot", "vote", "president", "prime minister", "parliament", "congress", "senate", "lawmaker", "minister", "diplomatic", "ambassador", "cabinet", "political", "governor", "mayor", "legislator",
+  ],
+  keepIfMatches: [
+    "人工智能", "生成式ai", "ai应用", "ai产品", "ai芯片", "大模型", "智能体", "机器学习", "ai model", "ai safety", "ai agent", "ai startup", "ai product", "ai application", "ai chip", "artificial intelligence", "large language model", "openai", "anthropic", "chatgpt", "gemini", "deepseek", "llm",
+    "cyber", "cybersecurity", "网络安全", "漏洞", "勒索", "数据泄露", "恶意软件", "网络攻击", "零日漏洞", "半导体", "芯片", "科技", "科学", "科研", "医疗", "临床", "公共卫生",
+    "地震", "洪水", "台风", "疫情", "重大灾害", "经济", "金融市场", "融资", "并购", "ransomware", "data breach", "malware", "cyberattack", "zero-day", "zero day", "security breach", "security flaw", "cve-", "semiconductor", "technology", "scientific", "earthquake", "hurricane", "wildfire", "flood", "pandemic", "war", "emergency", "climate change", "funding", "merger", "acquisition", "major disaster",
+  ],
+} satisfies { dropMarkersTitleOnly: string[]; keepIfMatches: string[] };
+
+const GENERAL_NEWS_SOURCE_IDS = new Set([
+  "rss-bbc-chinese",
+  "rss-economist-world",
+  "rss-guardian-world",
+  "rss-npr-news",
+]);
+
 export function noiseFiltered(c: Candidate, source: SourceRow): boolean {
   const f = source.config.ingestNoiseFilter;
+  const editorialFilter = GENERAL_NEWS_SOURCE_IDS.has(source.id) ? GENERAL_NEWS_POLITICS_FILTER : undefined;
   const cats: string[] = c.categories ?? [];
   if (source.config.denyCategories?.some((d: string) => cats.includes(d))) return true;
   if (source.config.allowCategories?.length && !source.config.allowCategories.some((a: string) => cats.includes(a))) return true;
-  if (!f) return false;
+  if (!f && !editorialFilter) return false;
   // Case-insensitive: the exemption "agent" keeps "Agent" (words in the lists are lower case).
   const has = (text: string, words: string[] | undefined) => (words ?? []).some((k) => text.includes(k.toLowerCase()));
   const title = c.title.toLowerCase();
   const hay = `${title}\n${(c.excerpt ?? "").toLowerCase()}`;
-  if (has(hay, f.keepIfMatches)) return false;
-  return has(title, f.dropMarkersTitleOnly) || has(hay, f.dropMarkers);
+  if (has(hay, [...(editorialFilter?.keepIfMatches ?? []), ...(f?.keepIfMatches ?? [])])) return false;
+  return has(title, [...(editorialFilter?.dropMarkersTitleOnly ?? []), ...(f?.dropMarkersTitleOnly ?? [])]) || has(hay, f?.dropMarkers);
 }
 
 function rewriteUrl<C extends Candidate>(c: C, source: SourceRow): C {

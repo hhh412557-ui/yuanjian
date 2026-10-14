@@ -18,6 +18,7 @@ import { listTopicSummaries, loadTopicPage, topicBrowseLinks } from "@yuanjian/b
 import { registerFeedback } from "./feedback.ts";
 import { loadHot, loadStoryDetail, resolveStory } from "@yuanjian/backend/publication/stories";
 import { listReports, loadReport, reportNavigation, loadReportNavigation, loadReportMonth, type ReportKind } from "@yuanjian/backend/publication/reports";
+import { loadTrialDemo } from "@yuanjian/backend/publication/trial";
 import { looseQuery, sendJsonWithEtag, sendProblem } from "../http/respond.ts";
 
 type Handler = (req: FastifyRequest, reply: FastifyReply) => Promise<unknown>;
@@ -134,6 +135,12 @@ export function registerSite(app: FastifyInstance) {
 
   app.get("/api/site/topics", siteHandler(async (req, reply) => {
     return sendJsonWithEtag(req, reply, await listTopicSummaries(), { etagPrefix: "topics", cacheControl: "public, max-age=300, s-maxage=300" });
+  }));
+
+  // 试读页的情报小样：按主题返回真实条目（精选优先，不足补已收录）。
+  app.get("/api/site/trial-demo", siteHandler(async (req, reply) => {
+    const themes = (looseQuery(req).themes ?? "").split(",").map((value) => value.trim()).filter(Boolean).slice(0, 24);
+    return sendJsonWithEtag(req, reply, await loadTrialDemo(themes), { etagPrefix: "trial", cacheControl: "public, max-age=60, s-maxage=60" });
   }));
 
   app.get('/api/site/search/suggestions', siteHandler(async (req, reply) => {

@@ -1,7 +1,8 @@
 // A category filter on the public API, RSS and MCP takes in exactly the categories the site publishes as
-// it (site/site.ts PUBLIC_CATEGORIES), whatever the industry's categories are; the website filters by each
-// of its own. Failure cases: a public filter takes in a category the site publishes on its own (or misses
-// one merged into it); the website's filter merges categories; the exits disagree.
+// it (site/site.ts PUBLIC_CATEGORIES), whatever the industry's categories are; the website's filter tabs
+// group the pack's own categories (site/site.ts WEB_CATEGORIES), a merged tab taking in every category it
+// joins. Failure cases: a filter takes in a category it does not publish on its own (or misses one merged
+// into it); the exits disagree.
 import { tag } from "./setup.ts";
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
@@ -9,7 +10,7 @@ import { closeDb, sql } from "@yuanjian/backend/db";
 import { itemFeed } from "@yuanjian/backend/publication/feeds";
 import { loadTimeline } from "@yuanjian/backend/publication/timeline";
 import { v1Items } from "@yuanjian/backend/publication/v1";
-import { CATEGORY_KEYS, PUBLIC_API_CATEGORY_KEYS, toPublicApiCategory } from "@yuanjian/contracts/taxonomy";
+import { CATEGORY_KEYS, PUBLIC_API_CATEGORY_KEYS, toPublicApiCategory, webCategoryMembers, WEB_CATEGORY_KEYS } from "@yuanjian/contracts/taxonomy";
 
 const T = tag();
 const SOURCE = `categories-${T}`;
@@ -54,9 +55,10 @@ test("v1 accepts multiple public categories and returns the normalized category 
   assert.deepEqual(result.query.categories, [...categories].sort());
 });
 
-test("the website filters by each of its own categories", async () => {
-  for (const key of CATEGORY_KEYS) {
+test("the website filters by each of its own tabs, a merged one taking in every category it joins", async () => {
+  for (const key of WEB_CATEGORY_KEYS) {
+    const want = webCategoryMembers(key).map(title).sort();
     const timeline = await loadTimeline({ channel: "all", category: key, tag: T, limit: 40, now });
-    assert.deepEqual(ours(timeline.cards.map((c) => c.item.title)), [title(key)], key);
+    assert.deepEqual(ours(timeline.cards.map((c) => c.item.title)), want, key);
   }
 });

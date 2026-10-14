@@ -13,6 +13,7 @@ import { currentSignals } from "../events/hot.ts";
 import { pickRepresentative, representativePriority, REPRESENTATIVE_COLUMNS, type RepresentativeIdentity } from "../publication/representative.ts";
 import { factSources } from "../publication/coverage.ts";
 import { evidenceCondition, listedCondition, ownFactEvidenceCondition } from "../publication/scope.ts";
+import { isAiDailyCandidate } from "./daily-scope.ts";
 
 /** Each category's section; several categories may share one, in the order the pack lists them. */
 export const SECTION_OF: Record<string, string> = Object.fromEntries(CATEGORIES.map((c) => [c.key, c.section]));
@@ -298,9 +299,13 @@ interface Fact { key: string; rows: ReportRow[]; selected: boolean; sources: str
  */
 export async function dailyEdition(date: string, start: Date, end: Date): Promise<{ entries: EditionEntry[]; stats: Record<string, number> }> {
   const [memory, selected, missed, judged] = await Promise.all([dailyMemory(date), periodReports(start, end), missedFacts(start, end), judgedReports(start, end)]);
+  const aiSelected = selected.filter(isAiDailyCandidate);
+  const aiMissed = missed
+    .map((fact) => ({ ...fact, rows: fact.rows.filter(isAiDailyCandidate) }))
+    .filter((fact) => fact.rows.length > 0);
   const raw = [
-    ...[...groupBy(selected, factKeyOf)].map(([key, rows]) => ({ key, rows, selected: true })),
-    ...missed.map((m) => ({ ...m, selected: false })),
+    ...[...groupBy(aiSelected, factKeyOf)].map(([key, rows]) => ({ key, rows, selected: true })),
+    ...aiMissed.map((m) => ({ ...m, selected: false })),
   ];
   const kept = raw.filter((f) => !memory.keys.has(f.key) && !f.rows.some((r) => memory.keys.has(`a:${r.id}`)));
   const factIds = [...new Set(kept.map((f) => f.rows[0]!.fact_id).filter((id): id is number => id !== null))];
@@ -365,7 +370,7 @@ export async function dailyEdition(date: string, start: Date, end: Date): Promis
   entries.sort((a, b) => b.importance - a.importance || a.entry.itemId.localeCompare(b.entry.itemId));
   return {
     entries,
-    stats: { judgedReports: judged, selectedReports: selected.length, facts: raw.length, repeatsSuppressed: raw.length - kept.length, fillIns: kept.filter((f) => !f.selected).length, events: entries.length },
+    stats: { judgedReports: judged, selectedReports: aiSelected.length, facts: raw.length, repeatsSuppressed: raw.length - kept.length, fillIns: kept.filter((f) => !f.selected).length, events: entries.length },
   };
 }
 

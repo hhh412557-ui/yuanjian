@@ -19,6 +19,11 @@ export class IngestError extends Error {
 interface ItemIn {
   title?: unknown;
   url?: unknown;
+  /** Full text, for items that carry no address (pasted threat intelligence and the like). */
+  body?: unknown;
+  excerpt?: unknown;
+  /** Stable identity for items without a URL; otherwise derived from url + title. */
+  identityKey?: unknown;
   publishedAt?: unknown;
   author?: unknown;
   raw?: { _yuanjian?: { backfill?: boolean; baseline?: boolean } } & Record<string, unknown>;
@@ -44,20 +49,33 @@ export async function ingestItems(body: { sourceId?: unknown; sourceName?: unkno
     if (!it || typeof it !== "object") continue;
     const title = typeof it.title === "string" ? it.title.trim() : "";
     const rawUrl = typeof it.url === "string" ? it.url.trim() : "";
-    if (!title || !rawUrl) continue;
+    const body = typeof it.body === "string" ? it.body.trim() : "";
+    const excerpt = typeof it.excerpt === "string" ? it.excerpt.trim() : "";
+    // An item needs a title, and either an address or a body: pasted intelligence arrives as plain text.
+    if (!title) continue;
+    if (!rawUrl && !body) continue;
     const url = normalizeUrl(rawUrl);
-    if (!url || seen.has(url)) continue;
-    seen.add(url);
+    if (url) {
+      if (seen.has(url)) continue;
+      seen.add(url);
+    }
     const published = typeof it.publishedAt === "string" ? new Date(it.publishedAt) : null;
     const flags = it.raw?._yuanjian ?? {};
+    const explicitIdentity = typeof it.identityKey === "string" ? it.identityKey.trim() : "";
     const res = await upsertMaterial({
       sourceId: source!.id,
       // Normalize only for deduplication. Ownership needs the reported origin (including www and
       // scheme), and upsertMaterial already applies the common normalized identity rule.
       url: rawUrl,
       title,
+      // Items with no address are identified by their title (or an explicit identityKey) instead.
+      identityKey: url ? undefined : explicitIdentity || undefined,
       author: typeof it.author === "string" ? it.author.slice(0, 200) : null,
       publishedAt: published && Number.isFinite(published.getTime()) ? published : null,
+      excerpt: excerpt || null,
+      bodyText: body || null,
+      // Store the supplied text as the body: there is no page to fetch when the item has no address.
+      bodyStatus: body ? "ok" : undefined,
       raw: it.raw ?? null,
       via: "ingest",
       backfill: flags.backfill ? "reported-backfill" : flags.baseline ? "reported-baseline" : null,

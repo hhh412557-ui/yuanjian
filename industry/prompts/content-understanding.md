@@ -43,7 +43,7 @@
 
 其后可选 0–5 个适用标签，并且只能来自以下两个白名单：
 
-- 主题：Agent、编码、推理、多模态、语音、视频、图像生成、RAG、端侧、数据/训练、搜索、部署/工程、开源生态、具身智能、MCP/工具调用、时政、综合新闻、网络安全、勒索情报、暗网情报、CVE、NVD、CNVD、数据泄露、恶意软件、钓鱼攻击、供应链、云安全、身份与访问、终端安全、工业控制、安全运营、漏洞利用、安全媒体、海外媒体、厂商研究、监管合规、公开源、待验证
+- 主题：Agent、编码、推理、多模态、语音、视频、图像生成、RAG、端侧、数据/训练、搜索、部署/工程、开源生态、具身智能、MCP/工具调用、时政、综合新闻、网络安全、勒索情报、CVE、NVD、CNVD、数据泄露、恶意软件、钓鱼攻击、供应链、云安全、身份与访问、终端安全、工业控制、安全运营、漏洞利用、安全媒体、海外媒体、厂商研究、监管合规、公开源、待验证
 - 实体：OpenAI、Anthropic、DeepSeek、DeepMind、Google、Meta、Microsoft、xAI、Hugging Face、GitHub、arXiv、CNCERT、CNVD、工信部、网信办、CISA、NVD、FreeBuf、安全牛、嘶吼、看雪、永信至诚、Cisco、Palo Alto Networks、Sophos、Mandiant、BleepingComputer、The Hacker News、BBC、The Guardian、NPR、The Economist
 
 不要创造白名单之外的标签。没有适用的主题或实体时，只返回第一个分类标签；时政和综合新闻不需要强行归到 AI 主题。网络安全相关材料可使用“网络安全”“漏洞披露”“威胁情报”“待验证”等标签，但不得把匿名自称写成已确认事实。

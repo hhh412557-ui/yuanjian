@@ -34,7 +34,7 @@ const SECTIONS: Array<{ title: string; items: NavItem[] }> = [
     items: [
       { to: "/topics/network-security", label: "网络安全", icon: IconShield },
       { to: "/topics/ransomware-intelligence", label: "勒索情报", icon: IconAlert },
-      { to: "/topics/dark-web-intelligence", label: "暗网情报", icon: IconEye },
+      { to: "/topics/threat-intelligence", label: "威胁情报", icon: IconEye },
     ],
   },
   {

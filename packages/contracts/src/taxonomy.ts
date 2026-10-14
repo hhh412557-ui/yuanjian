@@ -1,8 +1,9 @@
 // Public vocabularies shared by the website, the API and the worker. The categories themselves belong to
 // the industry pack (industry/taxonomy.ts); their keys are external identities (URLs, API, RSS) and never change.
-// How the public API, RSS and MCP differ from the website is the site's (site/site.ts PUBLIC_CATEGORIES).
+// How the public API, RSS and MCP differ from the website is the site's (site/site.ts PUBLIC_CATEGORIES);
+// how the website's own filter tabs group them is the site's too (site/site.ts WEB_CATEGORIES).
 import { CATEGORIES } from "@yuanjian/industry/taxonomy";
-import { PUBLIC_CATEGORIES } from "@yuanjian/site";
+import { PUBLIC_CATEGORIES, WEB_CATEGORIES } from "@yuanjian/site";
 
 type Category = (typeof CATEGORIES)[number];
 
@@ -23,6 +24,30 @@ export function toPublicApiCategory(category: string | null): PublicApiCategoryK
   const c = CATEGORIES.find((x) => x.key === category);
   if (!c) return null;
   return (MERGE[c.key] ?? c.key) as PublicApiCategoryKey;
+}
+
+const WEB_MERGE: Partial<Record<string, string>> = WEB_CATEGORIES.merge;
+
+/** The categories the website's filter tabs know: a merged pair shows as one, under the key it joins. */
+export type WebCategoryKey = Exclude<CategoryKey, keyof typeof WEB_CATEGORIES.merge>;
+export const WEB_CATEGORY_KEYS = CATEGORIES.filter((c) => !Object.hasOwn(WEB_MERGE, c.key)).map((c) => c.key) as unknown as readonly [WebCategoryKey, ...WebCategoryKey[]];
+
+/** The industry's categories a website filter for `key` takes in: `key` itself and any merged into it. */
+export function webCategoryMembers(key: string): CategoryKey[] {
+  return CATEGORIES.filter((c) => (WEB_MERGE[c.key] ?? c.key) === key).map((c) => c.key);
+}
+
+/** The website's tab name: the labels of the categories it takes in, joined (「时政与综合新闻」). */
+export function webCategoryLabel(key: string): string {
+  const labels = webCategoryMembers(key).map((k) => CATEGORY_LABELS[k]);
+  return labels.length ? labels.join("与") : key;
+}
+
+/** The website's tab a category shows under: a merged one under the key it joins (an older link keeps working). */
+export function toWebCategory(category: string | null): WebCategoryKey | null {
+  const c = CATEGORIES.find((x) => x.key === category);
+  if (!c) return null;
+  return (WEB_MERGE[c.key] ?? c.key) as WebCategoryKey;
 }
 
 /** A public category's name in feeds (<category>, a category feed's title): the site's, else the pack's feed label, else its website label. */

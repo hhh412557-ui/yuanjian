@@ -187,7 +187,7 @@ export const REPORTS = {
   motto: "信息精选",
   /** 每种报告页面的描述（搜索结果、分享卡片），不带句号；llms.txt 介绍周报、月报时也用它。 */
   descriptions: {
-    daily: `${SITE.name} ${EDITION_WHEN.daily}（北京时间）发布的 AI 与新闻精编日报`,
+    daily: `${SITE.name} ${EDITION_WHEN.daily}（北京时间）发布的 AI 领域精编日报`,
     weekly: "每周信息综合回顾",
     monthly: "每月信息盘点",
   },
@@ -201,7 +201,7 @@ export const REPORTS = {
   /** 报告分享图上“共几条”的说法。 */
   shareUnit: "件大事",
   /** 日报时段内有资料经过评判、但没有新大事时的标题与导语。 */
-  quiet: { title: "今日安静，没有新的信息焦点", paragraph: "北京时间 {start} 至 {end}，没有新的信息焦点。" },
+  quiet: { title: "暂无值得关注的 AI 新动态", paragraph: "北京时间 {start} 至 {end}，暂无符合 AI 日报收录范围的新动态。" },
 };
 
 /** 运维告警（只发给站长）里随部署而变的几处说法。 */
@@ -236,7 +236,7 @@ export const CARDS: Record<string, { kicker: string; title: string; subtitle: st
   site: { kicker: "每日信息精选", title: SITE.tagline, subtitle: SITE.description },
   all: { kicker: "全部动态", title: "所有信源的最新动态，一站看完", subtitle: "按时间汇总各信源的最新动态，可按类别与标签筛选。" },
   hot: { kicker: "热点榜", title: "过去 48 小时，大家在讨论什么", subtitle: "热度指数、趋势与组成热度的公开来源。", accent: "hot" },
-  daily: { kicker: "AI 与新闻日报", title: `每天 ${spokenTime(EDITION_TIMES.daily)}，一份读得完的信息精选`, subtitle: "前一天值得关注的 AI、时政、综合新闻与特色安全动态。" },
+  daily: { kicker: "AI 日报", title: `每天 ${spokenTime(EDITION_TIMES.daily)}，一份读得完的 AI 信息精选`, subtitle: "只收录与人工智能直接相关的模型、产品、技术与产业动态。" },
   weekly: { kicker: withSubject("周报"), title: `一周${REPORTS.entry.noun}，一次看清`, subtitle: "本周的主线、重要发布与值得回看的讨论。" },
   monthly: { kicker: withSubject("月报"), title: "一个月的变化", subtitle: "月度主线与关键事件回顾。" },
   about: { kicker: "关于", title: `关于 ${SITE.name}`, subtitle: SITE.description },
@@ -299,6 +299,40 @@ export const PUBLIC_CATEGORIES = {
   merge: {},
   feedLabels: {},
 } as const;
+
+/**
+ * 网页端的类别合并（选填）：key 是并进别的类别的类别，值是并入的目标类别。
+ * 只影响网页的筛选栏、分类 tab 和列表筛选（/ 与 /all）；公开接口（API、RSS、MCP）仍按
+ * PUBLIC_CATEGORIES 发布，不受影响。合并后 tab 的名字是这几个类别名用「与」拼起来（如「时政与综合新闻」）。
+ * 上线后不要改：tab 里的类别 key 是网址参数。
+ */
+export const WEB_CATEGORIES = {
+  merge: { "general-news": "current-affairs" },
+} as const;
+
+/**
+ * 网页列表的排序权重（选填）：「全部信息动态」和「精选」先按北京日分天，同一天内再按这里的权重排，
+ * 最后才按条目自身的时间。key 是行业包里的类别（industry/taxonomy.ts），值越大越靠前，负数越靠后，
+ * 没写的类别是 0（排在正的之后、负的之前）。改完要重新构建（docker compose up -d --build）才生效。
+ * 公开接口（API、RSS、MCP）和日报不受影响，仍按纯时间。
+ */
+export const LIST_RANK: { ahead: Record<string, number>; behind: Record<string, number> } = {
+  /** 主要方向：AI 与网络安全。 */
+  ahead: {
+    "ai-models": 2, "ai-products": 2,
+    "security-advisory": 2, "vulnerability": 2, "threat-intel": 2, "research": 2, "practice": 2,
+  },
+  /** 让位：时政与综合新闻排在后面（否则最新一条就会顶掉首页第一屏）。 */
+  behind: { "current-affairs": -1, "general-news": -1 },
+};
+
+/**
+ * 特色板块（industry/topics.json 里用 sourceId 绑定单一信源的主题，如「威胁情报」的微盘投递）在网页列表里的位置。
+ * listedInAll=false 时，这些信源的条目不进「全部」列表和其他类别的筛选结果，只在它自己的类别页和
+ * 主题页出现 —— 它们不经评分、成批投递，混进「全部」会把当天其它新闻整页顶掉。
+ * 想让它回到「全部」里，把这项改成 true 即可。
+ */
+export const BOARD_SOURCES = { listedInAll: false } as const;
 
 /** “AI 日报”这类说法：行业词和名词之间，英文词加空格，中文词不加。 */
 export function withSubject(noun: string): string {

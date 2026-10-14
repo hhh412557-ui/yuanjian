@@ -23,7 +23,7 @@
     {
       "key": "security",
       "name": "特色安全",
-      "blurb": "按网络安全、漏洞、勒索与公开源验证浏览"
+      "blurb": "浏览网络安全、漏洞与威胁情报"
     }
   ],
   "topics": [
@@ -368,7 +368,7 @@
       "tags": [
         "网络安全"
       ],
-      "definition": "作为永信至诚特色方向接入的网络安全动态，覆盖监管、漏洞、威胁、媒体与厂商研究。"
+      "definition": "关注网络安全领域的重要动态，涵盖监管政策、漏洞风险、威胁活动与安全研究。"
     },
     {
       "slug": "ransomware-intelligence",
@@ -377,16 +377,14 @@
       "tags": [
         "勒索情报"
       ],
-      "definition": "勒索软件家族、攻击活动、受害组织与公开报告；外部泄露站点继续保持公开源验证阶段。"
+      "definition": "关注勒索软件家族、攻击活动、受影响组织与相关事件进展。"
     },
     {
-      "slug": "dark-web-intelligence",
-      "name": "暗网情报",
+      "slug": "threat-intelligence",
+      "name": "威胁情报",
       "group": "security",
-      "tags": [
-        "暗网情报"
-      ],
-      "definition": "暗网情报主题占位页。本期只保留信息架构，不接入实际暗网数据源。"
+      "sourceId": "ext-threat-intel",
+      "definition": "关注数据泄露、攻击组织与入侵活动等网络安全事件，持续追踪重要进展。"
     },
     {
       "slug": "vulnerability-db",

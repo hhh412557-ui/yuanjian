@@ -10,7 +10,7 @@ import { exportTranslation, isChineseBody, ITEM_COLUMNS, ITEM_FROM, seatHolders,
 import { evidenceCondition, listedCondition } from "./scope.ts";
 import { itemUrl, siteUrl } from "./links.ts";
 import { hasItemPage, publicSourceName } from "./rules.ts";
-import { topicLinks, topicMembership } from "./topics.ts";
+import { TOPICS, topicLinks, topicMembership } from "./topics.ts";
 
 interface DetailRow extends ItemRow {
   body_html: string | null;
@@ -39,10 +39,10 @@ function withOutline(html: string): { html: string; outline: OutlineEntry[] } {
   return { html: out, outline };
 }
 
-async function loadRow(id: string): Promise<DetailRow | null> {
+async function loadRow(id: string, now: Date): Promise<DetailRow | null> {
   const [row] = await sql<DetailRow[]>`
     SELECT ${ITEM_COLUMNS}, a.body_html, a.body_text, a.body_status, tr.body_html AS tr_html, tr.complete AS tr_complete,
-      ${topicMembership()} AS topics
+      ${topicMembership(TOPICS, now)} AS topics
     ${ITEM_FROM}
     WHERE p.article_id = ${id}`;
   return row ?? null;
@@ -77,7 +77,7 @@ function readingBody(
  * withdrawn and hot_signal items are a 404.
  */
 export async function loadItemDetail(id: string, language: "zh" | "original" = "zh", now = new Date()): Promise<DetailResult> {
-  const row = await loadRow(id);
+  const row = await loadRow(id, now);
   if (!row || !hasItemPage({ visibility: row.visibility, sourceMode: row.source_mode })) return { kind: "not_found" };
 
   const summary = toItemSummary(row);
@@ -179,7 +179,7 @@ export function markdownAvailable(row: {
 }
 
 export async function exportMarkdown(id: string): Promise<{ filename: string; body: string } | null> {
-  const row = await loadRow(id);
+  const row = await loadRow(id, new Date());
   if (!row || !markdownAvailable(row)) return null;
   const lines: string[] = [];
   lines.push(`# ${row.title}`, "");

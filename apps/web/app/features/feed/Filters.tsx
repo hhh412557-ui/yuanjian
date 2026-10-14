@@ -2,7 +2,7 @@
 // button on phones), the phone bar of 精选 and 全部, and search.
 import { useEffect, useRef, useState } from "react";
 import { Form, Link, useNavigation, useSearchParams } from "react-router";
-import { CATEGORY_KEYS, CATEGORY_LABELS, CHANNEL_LABELS, type CategoryKey, type ChannelKey } from "@yuanjian/contracts/taxonomy";
+import { CHANNEL_LABELS, toWebCategory, WEB_CATEGORY_KEYS, webCategoryLabel, type CategoryKey, type ChannelKey } from "@yuanjian/contracts/taxonomy";
 import { SITE } from "@yuanjian/site";
 import { IconCheck, IconClose, IconFilter, IconSearch } from "../../components/icons";
 import { PillTabs } from "../../components/ui/Tabs";
@@ -26,25 +26,27 @@ function hrefWith(base: string, params: URLSearchParams, patch: Record<string, s
 
 /**
  * The feed's one filter (精选 and 全部动态 alike): none, 一手, or a category. One choice at a time: picking
- * 一手 clears the category and picking a category clears 一手. Older 资讯 / X links still filter; the
- * choice then shows as none.
+ * 一手 clears the category and picking a category clears 一手. Categories the site merges into one
+ * (site/site.ts WEB_CATEGORIES) show as a single tab under the label their names join into. Older 资讯 /
+ * X links still filter; the choice then shows as none.
  */
 function filterOptions(base: string, params: URLSearchParams, noneLabel: string) {
   return [
     { key: "all", label: noneLabel, to: hrefWith(base, params, { category: null, channel: null }) },
     { key: "firstParty", label: CHANNEL_LABELS.firstParty, to: hrefWith(base, params, { category: null, channel: "firstParty" }) },
-    ...CATEGORY_KEYS.map((k) => ({ key: k, label: CATEGORY_LABELS[k], to: hrefWith(base, params, { category: k, channel: null }) })),
+    ...WEB_CATEGORY_KEYS.map((k) => ({ key: k, label: webCategoryLabel(k), to: hrefWith(base, params, { category: k, channel: null }) })),
   ];
 }
 
 function filterKey(category: CategoryKey | null, channel: ChannelKey): string {
-  return channel === "firstParty" ? "firstParty" : (category ?? "all");
+  return channel === "firstParty" ? "firstParty" : (toWebCategory(category) ?? "all");
 }
 
-/** Desktop: the filter as a row of tabs beside the search field. */
+/** Desktop: the filter as a row of tabs beside the search field. There are more categories than fit,
+ * so the row carries end chevrons and can be dragged: every category stays reachable. */
 export function CategoryTabs({ base, category, channel = "all", layoutId, className = "" }: { base: string; category: CategoryKey | null; channel?: ChannelKey; layoutId: string; className?: string }) {
   const [params] = useSearchParams();
-  return <PillTabs items={filterOptions(base, params, "全部").map(o => ({ ...o, prefetch: 'intent' as const }))} active={filterKey(category, channel)} layoutId={layoutId} label="筛选" className={className} />;
+  return <PillTabs scrollButtons items={filterOptions(base, params, "全部").map(o => ({ ...o, prefetch: 'intent' as const }))} active={filterKey(category, channel)} layoutId={layoutId} label="筛选" className={className} />;
 }
 
 /**
@@ -121,7 +123,8 @@ function FilterSheet({ open, onClose, base, active }: { open: boolean; onClose: 
 /** Phones: the filter and tag in use as chips under the bar; each one clears itself when tapped. */
 export function ActiveFilters({ base, category, channel, tag }: { base: string; category: CategoryKey | null; channel: ChannelKey; tag: string | null }) {
   const [params] = useSearchParams();
-  const label = channel === "firstParty" ? CHANNEL_LABELS.firstParty : category ? CATEGORY_LABELS[category] : null;
+  const web = toWebCategory(category);
+  const label = channel === "firstParty" ? CHANNEL_LABELS.firstParty : web ? webCategoryLabel(web) : null;
   if (!label && !tag) return null;
   const chip = "inline-flex min-h-11 max-w-full items-center gap-1 rounded-full bg-accent-soft pl-3 pr-2 text-[13px] font-medium text-accent transition-opacity active:opacity-60";
   return (

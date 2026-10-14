@@ -4,9 +4,10 @@ import { beijingDate, beijingMidnight } from "@yuanjian/contracts/time";
 import { one, sql, withCustomPlans, type Db } from "../db.ts";
 import { cachedByKey, sharedSearch } from "../lib/cache.ts";
 import {
-  categoryCondition, channelCondition, ITEM_COLUMNS, ITEM_FROM, seatHolders, tagCondition, toFeedItemSummary,
+  categoryCondition, channelCondition, ITEM_COLUMNS, ITEM_FROM, listRankOrder, seatHolders, tagCondition, toFeedItemSummary,
   type ItemRow,
 } from "./items.ts";
+import { boardSourceCondition } from "./boards.ts";
 import { listedCondition } from "./scope.ts";
 import { TOPICS } from "./topics.ts";
 
@@ -101,11 +102,21 @@ export function publicMatchCondition(terms: string[]) {
   );
 }
 
+/**
+ * A partner-fed board stays out of the general list: its items arrive in batches without the scorer, so
+ * showing them in 「全部」 would push a whole day's news off the page (boards.ts). Its own category page
+ * and topic page list it as usual; a category or tag filter, and a search, show it too.
+ */
+function listedBoardCondition(f: Pick<TimelineFilters, "category" | "tag">, searching: boolean) {
+  return searching ? sql`` : boardSourceCondition(f);
+}
+
 /** The listed items under the filters, up to the pages the pool offers. */
 async function listedCount(f: TimelineFilters, now: Date): Promise<number> {
   return Number(one(await sql<{ n: number }[]>`
     SELECT count(*) AS n FROM (SELECT 1 FROM publications p WHERE ${listedCondition(now)}
-      ${channelCondition(f.channel)} ${categoryCondition(f.category)} ${tagCondition(f.tag)} LIMIT ${POOL_MAX_PAGES * POOL_PAGE_SIZE}) t`).n);
+      ${channelCondition(f.channel)} ${categoryCondition(f.category)} ${tagCondition(f.tag)}
+      ${boardSourceCondition(f)} LIMIT ${POOL_MAX_PAGES * POOL_PAGE_SIZE}) t`).n);
 }
 
 /** Without a search the total only sets the page count: it is reused for 30 seconds per filter. */
@@ -135,6 +146,7 @@ async function queryPool(query: PoolQuery, now: Date): Promise<PoolResponse> {
   const terms = q ? searchTerms(q) : [];
   const entityTag = q ? queryEntityTag(q) : null;
   const filters = sql`${channelCondition(query.channel)} ${categoryCondition(query.category)} ${tagCondition(query.tag)}`;
+  const board = listedBoardCondition(query, !!q);
   const offset = (page - 1) * POOL_PAGE_SIZE;
   const cap = POOL_MAX_PAGES * POOL_PAGE_SIZE;
 
@@ -144,13 +156,14 @@ async function queryPool(query: PoolQuery, now: Date): Promise<PoolResponse> {
   const like = (col: ReturnType<typeof sql>, t: string) => sql`${col} LIKE ${"%" + t + "%"}`;
   const run = async (db: Db) => {
     if (!q) {
-      // Page ids from the timeline index first, then the joins for those rows only.
+      // Page ids from the timeline index first, then the joins for those rows only. The website's own
+      // order (day, category weight, time) decides which rows the page holds (items.ts listRankOrder).
       const rows = await db<ItemRow[]>`
         WITH page AS (
-          SELECT p.article_id FROM publications p WHERE ${listedCondition(now)} ${filters}
-          ORDER BY p.timeline_at DESC, p.article_id DESC LIMIT ${POOL_PAGE_SIZE} OFFSET ${offset})
+          SELECT p.article_id FROM publications p WHERE ${listedCondition(now)} ${filters} ${board}
+          ORDER BY ${listRankOrder(sql`p.timeline_at`, sql`p.category`, sql`p.article_id`)} LIMIT ${POOL_PAGE_SIZE} OFFSET ${offset})
         SELECT ${ITEM_COLUMNS} ${ITEM_FROM} WHERE p.article_id IN (SELECT article_id FROM page)
-        ORDER BY p.timeline_at DESC, p.article_id DESC`;
+        ORDER BY ${listRankOrder(sql`p.timeline_at`, sql`p.category`, sql`p.article_id`)}`;
       // A fixed clock (tests, replays) never shares cached totals.
       return { rows, total: query.now ? await listedCount(query, now) : await poolTotal(query) };
     }
@@ -216,7 +229,7 @@ async function queryPool(query: PoolQuery, now: Date): Promise<PoolResponse> {
   const today = beijingDate(now);
   const meta = one(await sql<{ today_count: number; updated_at: Date | null }[]>`
     SELECT (SELECT count(*) FROM publications p
-      WHERE ${listedCondition(now)} AND p.timeline_at >= ${beijingMidnight(today)} ${filters}) AS today_count,
+      WHERE ${listedCondition(now)} AND p.timeline_at >= ${beijingMidnight(today)} ${filters} ${board}) AS today_count,
       (SELECT max(p.updated_at) FROM publications p WHERE p.eligible) AS updated_at`);
 
   const holders = await seatHolders(rows, now);

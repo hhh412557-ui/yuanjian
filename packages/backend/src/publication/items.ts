@@ -1,8 +1,8 @@
 // Public read layer, item level. Every exit (site API, v1, RSS, MCP, sitemap) reads
 // items through these columns and views; which rows are public is decided by scope.ts.
-import { CATEGORY_KEYS, toPublicApiCategory, type CategoryKey, type ChannelKey, type PublicApiCategoryKey } from "@yuanjian/contracts/taxonomy";
+import { CATEGORY_KEYS, toPublicApiCategory, webCategoryMembers, type CategoryKey, type ChannelKey, type PublicApiCategoryKey } from "@yuanjian/contracts/taxonomy";
 import type { FeedItemSummary, ItemSummary, MediaView, XPostView } from "@yuanjian/contracts/site";
-import { POLICY } from "@yuanjian/site";
+import { LIST_RANK, POLICY } from "@yuanjian/site";
 import { sql, type Db } from "../db.ts";
 import { isEmptyOrLinkOnly } from "../content/posts.ts";
 import { proxiedImage, proxiedImageSet } from "../media/imgproxy.ts";
@@ -75,10 +75,40 @@ export function channelCondition(channel: ChannelKey | null | undefined) {
   return sql`AND p.channel = ${channel}`;
 }
 
-/** The website's filter: one of its own categories. */
+/** The website's filter: one of its own categories, or any the site merges into it (site/site.ts WEB_CATEGORIES). */
 export function categoryCondition(category: CategoryKey | null | undefined) {
   if (!category) return sql``;
-  return sql`AND p.category = ${category}`;
+  const keys = webCategoryMembers(category);
+  if (!keys.length) return sql``;
+  return keys.length === 1 ? sql`AND p.category = ${keys[0]}` : sql`AND p.category IN ${sql(keys)}`;
+}
+
+/** The website's category weight, flattened into one CASE (site/site.ts LIST_RANK). */
+const RANK_WEIGHTS: ReadonlyArray<[string, number]> = [
+  ...Object.entries(LIST_RANK.behind), ...Object.entries(LIST_RANK.ahead),
+].filter(([, weight]) => weight !== 0) as ReadonlyArray<[string, number]>;
+
+/** A timestamp's Beijing calendar day: the website lists' first sort term and their day grouping. */
+export function beijingDay(at: ReturnType<typeof sql>) {
+  return sql`(${at} AT TIME ZONE 'Asia/Shanghai')::date`;
+}
+
+/**
+ * A report's weight in the website lists: AI and network security come first, current affairs and general
+ * news after, everything else in between. Read from site/site.ts LIST_RANK.
+ */
+export function categoryWeight(category: ReturnType<typeof sql>) {
+  let expr = sql`CASE ${category}`;
+  for (const [key, weight] of RANK_WEIGHTS) expr = sql`${expr} WHEN ${key} THEN ${weight}::int`;
+  return sql`${expr} ELSE 0 END`;
+}
+
+/**
+ * The website lists' (「全部信息动态」 and 「精选」) order: Beijing day first, then the category weight,
+ * then the report's own time. Machines (public API, RSS, MCP) and reports keep plain time order.
+ */
+export function listRankOrder(at: ReturnType<typeof sql>, category: ReturnType<typeof sql>, id: ReturnType<typeof sql>) {
+  return sql`${beijingDay(at)} DESC, ${categoryWeight(category)} DESC, ${at} DESC, ${id} DESC`;
 }
 
 /** The public API's, RSS's and MCP's filter: every category the site publishes as this one (PUBLIC_CATEGORIES). */

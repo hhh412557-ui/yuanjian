@@ -1,13 +1,14 @@
 // Selected news timeline: one card per fact, or per standalone article. Only duplicate reports
 // fold together. Each fact stays at its first appearance; other news in its story never moves it.
 import type { GroupInfo, TimelineCard, TimelineFilters, TimelineResponse } from "@yuanjian/contracts/site";
-import { beijingDate, beijingMidnight } from "@yuanjian/contracts/time";
+import { beijingDate } from "@yuanjian/contracts/time";
 import { sql } from "../db.ts";
 import { cachedByKey } from "../lib/cache.ts";
 import { pickRepresentative, REPRESENTATIVE_COLUMNS, type RepresentativeRow } from "./representative.ts";
+import { boardSourceCondition } from "./boards.ts";
 import { decodeCursor, encodeCursor, InvalidCursorError, queryBinding } from "../lib/cursor.ts";
 import {
-  ITEM_COLUMNS, ITEM_FROM, categoryCondition, channelCondition, tagCondition, toFeedItemSummary,
+  ITEM_COLUMNS, ITEM_FROM, categoryCondition, categoryWeight, channelCondition, beijingDay, tagCondition, toFeedItemSummary,
   type ItemRow,
 } from "./items.ts";
 import { evidenceCondition, listedCondition, ownFactEvidenceCondition, selectedCondition } from "./scope.ts";
@@ -21,10 +22,24 @@ export interface TimelineQuery extends TimelineFilters {
 interface GroupRow {
   gk: string;
   anchor_at: Date;
+  /** Beijing day of the group's anchor, then its strongest category weight: the list's first two sort terms. */
+  day: string;
+  weight: number;
+}
+
+/**
+ * Whether group `g` sorts strictly after the cursor key. The list is day, category weight, anchor, key —
+ * all descending (items.ts listRankOrder), so a smaller term means later in the list.
+ */
+function sortsAfter(g: { day: string; weight: number; anchor: number; gk: string }, after: { d: string; w: number; a: number; g: string }): boolean {
+  if (g.day !== after.d) return g.day < after.d;
+  if (g.weight !== after.w) return g.weight < after.w;
+  if (g.anchor !== after.a) return g.anchor < after.a;
+  return g.gk < after.g;
 }
 
 function filterSql(q: TimelineQuery) {
-  return sql`${channelCondition(q.channel)} ${categoryCondition(q.category)} ${tagCondition(q.tag)}`;
+  return sql`${channelCondition(q.channel)} ${categoryCondition(q.category)} ${tagCondition(q.tag)} ${boardSourceCondition(q)}`;
 }
 
 function binding(q: TimelineQuery): string {
@@ -45,42 +60,41 @@ async function groupPool(q: TimelineQuery, now: Date, factIds: number[]) {
 }
 
 /**
- * The selected set grouped into cards (fact or standalone item) with their anchor times, newest
- * first. Every timeline page and its day counts read this list; it is kept for five seconds per
- * filter scope (a newly selected report appears at most that much later).
+ * The selected set grouped into cards (fact or standalone item) with their anchor times, in the
+ * website's order: Beijing day, then the group's strongest category weight, then its anchor. Every
+ * timeline page and its day counts read this list; it is kept for five seconds per filter scope (a
+ * newly selected report appears at most that much later).
  */
 const groupedAnchors = cachedByKey(binding, (q: TimelineQuery) => queryGroupedAnchors(q, new Date()), { freshMs: 5000, maxStaleMs: 5000, maxKeys: 50 });
 
 async function queryGroupedAnchors(q: TimelineQuery, now: Date) {
   const rows = (
-    await sql<{ gk: string; anchor_at: Date }[]>`
+    await sql<{ gk: string; anchor_at: Date; day: string; weight: number }[]>`
       WITH base AS MATERIALIZED (
-        SELECT p.sort_at, CASE WHEN p.fact_id IS NOT NULL AND ${ownFactEvidenceCondition()}
+        SELECT p.sort_at, ${categoryWeight(sql`p.category`)} AS weight,
+          CASE WHEN p.fact_id IS NOT NULL AND ${ownFactEvidenceCondition()}
           THEN 'f' || p.fact_id::text ELSE 'a' || p.article_id END AS gk
         FROM publications p
         WHERE ${selectedCondition(now)} ${filterSql(q)}
       )
-      SELECT gk, min(sort_at) AS anchor_at FROM base GROUP BY gk ORDER BY anchor_at DESC, gk COLLATE "C" DESC`
-  ).map((r) => ({ gk: r.gk, anchor: r.anchor_at.getTime() }));
+      SELECT gk, min(sort_at) AS anchor_at,
+        to_char(min(${beijingDay(sql`sort_at`)}), 'YYYY-MM-DD') AS day, max(weight)::int AS weight
+      FROM base GROUP BY gk
+      ORDER BY min(${beijingDay(sql`sort_at`)}) DESC, max(weight) DESC, min(sort_at) DESC, gk COLLATE "C" DESC`
+  ).map((r) => ({ gk: r.gk, anchor: r.anchor_at.getTime(), day: r.day, weight: Number(r.weight) }));
   return rows;
 }
 
-/** Counts requested Beijing days over anchors already sorted newest first. */
+/**
+ * Counts the requested Beijing days over a grouped list, in any order (the list is ordered by day, then
+ * category weight, so its anchors are not globally descending).
+ */
 export function countTimelineDays(grouped: readonly { anchor: number }[], days: ReadonlySet<string>): Record<string, number> {
-  const firstBelow = (bound: number) => {
-    let lo = 0, hi = grouped.length;
-    while (lo < hi) {
-      const mid = Math.floor((lo + hi) / 2);
-      if (grouped[mid]!.anchor >= bound) lo = mid + 1;
-      else hi = mid;
-    }
-    return lo;
-  };
   const counts: Record<string, number> = {};
-  for (const day of days) {
-    const start = beijingMidnight(day).getTime();
-    const count = firstBelow(start) - firstBelow(start + 86_400_000);
-    if (count) counts[day] = count;
+  if (!days.size) return counts;
+  for (const group of grouped) {
+    const day = beijingDate(group.anchor);
+    if (days.has(day)) counts[day] = (counts[day] ?? 0) + 1;
   }
   return counts;
 }
@@ -89,17 +103,20 @@ export async function loadTimeline(q: TimelineQuery): Promise<Omit<TimelineRespo
   const now = q.now ?? new Date();
   const limit = Math.min(Math.max(q.limit ?? 20, 1), 40);
   const bind = binding(q);
-  let after: { a: number; g: string } | null = null;
+  let after: { a: number; g: string; d: string; w: number } | null = null;
   if (q.cursor) {
-    const c = decodeCursor<{ a: number; g: string; b: string }>("tl2", q.cursor);
-    if (c.b !== bind || typeof c.a !== "number" || typeof c.g !== "string") throw new InvalidCursorError("cursor does not match this query");
-    after = { a: c.a, g: c.g };
+    const c = decodeCursor<{ a: number; g: string; d: string; w: number; b: string }>("tl3", q.cursor);
+    if (c.b !== bind || typeof c.a !== "number" || typeof c.g !== "string" || typeof c.d !== "string" || typeof c.w !== "number") {
+      throw new InvalidCursorError("cursor does not match this query");
+    }
+    after = { a: c.a, g: c.g, d: c.d, w: c.w };
   }
 
   // A given clock (tests, replays) reads afresh.
   const grouped = q.now ? await queryGroupedAnchors(q, now) : await groupedAnchors(q);
-  const start = after ? grouped.findIndex((g) => g.anchor < after!.a || (g.anchor === after!.a && g.gk < after!.g)) : 0;
-  const groups: GroupRow[] = (start < 0 ? [] : grouped.slice(start, start + limit + 1)).map((g) => ({ gk: g.gk, anchor_at: new Date(g.anchor) }));
+  const start = after ? grouped.findIndex((g) => sortsAfter(g, after!)) : 0;
+  const groups: GroupRow[] = (start < 0 ? [] : grouped.slice(start, start + limit + 1))
+    .map((g) => ({ gk: g.gk, anchor_at: new Date(g.anchor), day: g.day, weight: g.weight }));
 
   const page = groups.slice(0, limit);
   const hasMore = groups.length > limit;
@@ -158,6 +175,6 @@ export async function loadTimeline(q: TimelineQuery): Promise<Omit<TimelineRespo
   const dayCounts = countTimelineDays(grouped, days);
 
   const last = page[page.length - 1];
-  const nextCursor = hasMore && last ? encodeCursor("tl2", { a: last.anchor_at.getTime(), g: last.gk, b: bind }) : null;
+  const nextCursor = hasMore && last ? encodeCursor("tl3", { a: last.anchor_at.getTime(), g: last.gk, d: last.day, w: last.weight, b: bind }) : null;
   return { filters: { channel: q.channel, category: q.category, tag: q.tag }, cards, nextCursor, dayCounts };
 }

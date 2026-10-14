@@ -2,8 +2,10 @@
 // pack (industry/topics.json) and read from there when the process starts. Which reports a topic takes
 // is one SQL predicate, `membership`: a direction or a form takes its tags; a company takes the reports
 // it is a subject of, but not those that only mention it — among several subject companies, its name must
-// appear in the Chinese or the original title. Lists and counts read the selected set one report per
-// fact, as v1 and RSS do.
+// appear in the Chinese or the original title; a source-bound topic takes only that one source's reports,
+// ignoring tags and titles, and lists every listed report of that source rather than the selected set —
+// such a topic is a partner-fed board whose whole content is curated outside, so nothing waits for the
+// scorer's threshold. Every other topic lists the selected set, one report per fact, as v1 and RSS do.
 import type { CategoryKey } from "@yuanjian/contracts/taxonomy";
 import type {
   Brand, TopicGroup, TopicGroupKey, TopicLink, TopicPage, TopicSummary, TopicsResponse,
@@ -25,6 +27,11 @@ export interface Topic {
   definition: string;
   /** Companies: the subject id (industry/taxonomy.ts ENTITIES). */
   entityId: string | null;
+  /**
+   * A source-bound topic: only reports from this one source id belong to it — tags and title patterns are
+   * ignored. Null for every other topic.
+   */
+  sourceId: string | null;
   /** Tags that put a report in the topic: a company's subject tag, a direction's or a form's tags. */
   tags: string[];
   /** Companies: a title naming the company by any of its names (a PostgreSQL regular expression). */
@@ -36,7 +43,7 @@ export interface Topic {
 interface TopicFile {
   groups: TopicGroup[];
   topics: Array<{
-    slug: string; name: string; group: TopicGroupKey; entityId?: string; aliases?: string[]; tags?: string[]; definition: string;
+    slug: string; name: string; group: TopicGroupKey; entityId?: string; sourceId?: string; aliases?: string[]; tags?: string[]; definition: string;
   }>;
 }
 
@@ -60,6 +67,7 @@ export const TOPICS: Topic[] = file.topics.map((t) => ({
   group: t.group,
   definition: t.definition,
   entityId: t.entityId ?? null,
+  sourceId: t.sourceId ?? null,
   tags: t.entityId ? [`entity:${t.entityId}`] : (t.tags ?? []),
   pattern: t.entityId ? titlePattern(t.name, t.entityId) : null,
   aliases: t.entityId ? [t.slug, t.name, ...nameParts(t.name), ...(t.aliases ?? [])] : [],
@@ -82,28 +90,44 @@ export function topicBrowseLinks() {
   return TOPICS.map(({ slug, name, group }) => ({ slug, name, group }));
 }
 
-/** One membership rule for topic discovery and a single topic's page and count. */
-function topicMatch(tags: ReturnType<typeof sql>, pattern: ReturnType<typeof sql>) {
-  return sql`p.tags && ${tags} AND (${pattern} IS NULL OR p.title ~* ${pattern} OR coalesce(p.original_title, '') ~* ${pattern}
-    OR (SELECT count(*) FROM unnest(p.tags) AS e(tag) WHERE e.tag LIKE 'entity:%') = 1)`;
+/**
+ * One membership rule for topic discovery and a single topic's page and count. A source-bound topic
+ * (`sourceId` set) takes that one source's reports and ignores tags and titles; every other topic keeps
+ * the tag overlap — plus, for a company, the title pattern.
+ */
+function topicMatch(tags: ReturnType<typeof sql>, pattern: ReturnType<typeof sql>, sourceId: ReturnType<typeof sql>) {
+  return sql`(${sourceId} IS NULL OR p.source_id = ${sourceId})
+    AND (${sourceId} IS NOT NULL OR (p.tags && ${tags} AND (${pattern} IS NULL OR p.title ~* ${pattern}
+      OR coalesce(p.original_title, '') ~* ${pattern}
+      OR (SELECT count(*) FROM unnest(p.tags) AS e(tag) WHERE e.tag LIKE 'entity:%') = 1)))`;
 }
 
 /**
- * The topics report `p` belongs to, in topic order: its tags meet the topic's and, for a company, the
- * title names it or it is the report's only subject company.
+ * The topics report `p` belongs to at `now`, in topic order. A source-bound topic takes every listed
+ * report of its source; every other topic takes the seated (selected) reports whose tags meet the
+ * topic's — and, for a company, whose title names it or that are the report's only subject company.
  */
-export function topicMembership(topics: Topic[] = TOPICS) {
-  const rows = topics.map((t) => ({ slug: t.slug, tags: t.tags, pattern: t.pattern, position: position(t.slug) }));
+export function topicMembership(topics: Topic[] = TOPICS, now: Date = new Date()) {
+  const rows = topics.map((t) => ({
+    slug: t.slug, tags: t.tags, pattern: t.pattern, source_id: t.sourceId, bound: t.sourceId !== null, position: position(t.slug),
+  }));
   return sql`ARRAY(
-    SELECT t.slug FROM jsonb_to_recordset(${sql.json(rows)}::jsonb) AS t(slug text, tags text[], pattern text, position int)
-    WHERE ${topicMatch(sql`t.tags`, sql`t.pattern`)}
+    SELECT t.slug FROM jsonb_to_recordset(${sql.json(rows)}::jsonb) AS t(slug text, tags text[], pattern text, source_id text, bound boolean, position int)
+    WHERE (CASE WHEN t.bound THEN ${listedCondition(now)} ELSE ${seatedCondition(now)} END)
+      AND ${topicMatch(sql`t.tags`, sql`t.pattern`, sql`t.source_id`)}
     ORDER BY t.position)`;
 }
 
-/** Report `p` is in topic `t`; the tag overlap comes first, for the tags index. */
+/** Report `p` matches topic `t` by tags, title pattern or source; the tag overlap comes first, for the tags index. */
 function inTopic(t: Topic) {
   const pattern: ReturnType<typeof sql> = t.pattern === null ? sql`NULL::text` : sql`${t.pattern}::text`;
-  return topicMatch(sql`${t.tags}::text[]`, pattern);
+  const sourceId: ReturnType<typeof sql> = t.sourceId === null ? sql`NULL::text` : sql`${t.sourceId}::text`;
+  return topicMatch(sql`${t.tags}::text[]`, pattern, sourceId);
+}
+
+/** What topic `t`'s own page lists at `now`: its seated reports, or a source-bound topic's whole listed set. */
+function topicEntry(t: Topic, now: Date) {
+  return sql`${t.sourceId === null ? seatedCondition(now) : listedCondition(now)} AND ${inTopic(t)}`;
 }
 
 // ---------------------------------------------------------------------------------------------------
@@ -168,19 +192,24 @@ interface TopicIndex {
   modules: Map<string, unknown>;
 }
 
-/** The full index or a bounded set of its candidates, with their current content and membership. */
+/**
+ * The full index or a bounded set of its candidates, with their current content and membership. The rows
+ * are the seated reports, plus — so a partner-fed board can list them — the listed reports of every
+ * source-bound topic in `topics`.
+ */
 async function readSeats(now: Date, ids?: string[], topics: Topic[] = TOPICS): Promise<TopicMember[]> {
+  const bound = [...new Set(topics.map((t) => t.sourceId).filter((id): id is string => id !== null))];
   const rows = await sql<SeatRow[]>`
     WITH seats AS (
-      SELECT p.article_id AS id, p.timeline_at AS at, p.visible_after AS released, p.title, p.score, (s.tier = 'T1') AS first_party,
+      SELECT p.article_id AS id, p.timeline_at AS at, coalesce(p.visible_after, p.timeline_at) AS released, p.title, p.score, (s.tier = 'T1') AS first_party,
         p.category, p.original_title, p.published_at, p.tags, p.fact_id,
         f.subject AS fact_subject, f.action AS fact_action, f.occurred_at AS fact_occurred_at, a.output->>'scope' AS scope,
-        st.public_id::text AS story, ${topicMembership(topics)} AS topics
+        st.public_id::text AS story, ${topicMembership(topics, now)} AS topics
       FROM publications p JOIN sources s ON s.id = p.source_id
       LEFT JOIN facts f ON f.id = p.fact_id
       LEFT JOIN analyses a ON a.id = p.analysis_id
       LEFT JOIN stories st ON st.id = p.story_id AND st.merged_into IS NULL
-      WHERE ${seatedCondition(now)}
+      WHERE (${seatedCondition(now)}${bound.length ? sql` OR (p.source_id = ANY(${bound}::text[]) AND ${listedCondition(now)})` : sql``})
         ${ids ? sql`AND p.article_id = ANY(${[...new Set(ids)]}::text[])` : sql``}
     ), dates AS (
       SELECT p.fact_id, min(coalesce(p.published_at, p.timeline_at)) AS fact_published_at
@@ -321,7 +350,7 @@ export async function loadTopicPage(slug: string, page: number, now?: Date): Pro
   for (const part of parts) recheck.push(...part.recheck);
   const [rows, pool, brands, live] = await Promise.all([
     ids.length
-      ? sql<ItemRow[]>`SELECT ${ITEM_COLUMNS} ${ITEM_FROM} WHERE p.article_id = ANY(${ids}::text[]) AND ${seatedCondition(at)} AND ${inTopic(topic)}
+      ? sql<ItemRow[]>`SELECT ${ITEM_COLUMNS} ${ITEM_FROM} WHERE p.article_id = ANY(${ids}::text[]) AND ${topicEntry(topic, at)}
           ORDER BY p.timeline_at DESC, p.article_id DESC`
       : [],
     poolTotal(topic, now),
@@ -344,7 +373,7 @@ const STORY_TOPICS = 6;
 /** The topics of a story's reports, most reports first. */
 export async function topicsOfStory(storyId: number, now = new Date()): Promise<TopicLink[]> {
   const rows = await sql<{ topics: string[] }[]>`
-    SELECT DISTINCT ON (p.article_id) ${topicMembership()} AS topics
+    SELECT DISTINCT ON (p.article_id) ${topicMembership(TOPICS, now)} AS topics
     FROM facts f JOIN fact_articles fa ON fa.fact_id = f.id JOIN publications p ON p.article_id = fa.article_id
     JOIN sources s ON s.id = p.source_id
     WHERE f.story_id = ${storyId} AND ${evidenceCondition()} AND ${storyReportCondition(now)}

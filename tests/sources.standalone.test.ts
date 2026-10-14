@@ -186,6 +186,21 @@ test("noise words match whatever their case", () => {
   assert.equal(noiseFiltered(c("iPhone 18 开售", ""), source), true);
 });
 
+test("broad general-news feeds drop routine politics but keep AI, cyber and major-impact stories", () => {
+  const ids = ["rss-bbc-chinese", "rss-economist-world", "rss-guardian-world", "rss-npr-news"];
+  const candidate = (title: string, excerpt = "") => ({ url: "https://example.org/a", title, excerpt }) as never;
+  for (const id of ids) {
+    const feed = { id, config: {} } as never;
+    assert.equal(noiseFiltered(candidate("President launches campaign ahead of election"), feed), true, id);
+    assert.equal(noiseFiltered(candidate("总统宣布外交部长人事调整"), feed), true, id);
+    assert.equal(noiseFiltered(candidate("President announces AI model safety initiative"), feed), false, id);
+    assert.equal(noiseFiltered(candidate("OpenAI enters new partnership after president's announcement"), feed), false, id);
+    assert.equal(noiseFiltered(candidate("President responds to a new ransomware vulnerability"), feed), false, id);
+    assert.equal(noiseFiltered(candidate("Government declares emergency after a major earthquake"), feed), false, id);
+  }
+  assert.equal(noiseFiltered(candidate("President launches campaign ahead of election"), { id: "another-rss", config: {} } as never), false);
+});
+
 test("a time without a zone is read in the source's offset, in JSON lists and in detail page metadata", async () => {
   const list = async (extra: Record<string, unknown> = {}) => (await fetchJsonList({ id: "test-json", config: { url: `${site}/zoneless.json`, itemsPath: "result", titlePaths: ["title"], urlTemplate: "https://example.org/p/{id}", publishedAtPath: "publishDate", ...extra } } as never))
     .map((c) => c.publishedAt?.toISOString());
